@@ -1,0 +1,5 @@
+Jan 2019
+a git repository was initiated for tailor to track changes and ease collaboration.
+The scripts in the directory have been organized for distribution as a productionalized package.
+Conflicts between the different R libraries on the cluster forced the creation of a .Rprofile.envrc script that is sourced by the loadmodules script
+The .Rprofile.envrc includes the R env variables and limits the depth of the shared R library because of conflicts with Tailor libraries and ghpcc libraries.

@@ -1,0 +1,22 @@
+FCID,Lane,SampleID,SampleRef,Index,Description,Control,Recipe,Operator,Project ID
+,1,M018,Drosophila,AACCAG,,N,,scp,JRDD
+,1,M021,Drosophila,TGGTGA,,N,,scp,JRDD
+,1,M022,Drosophila,AGTGAG,,N,,scp,JRDD
+,1,M024,Drosophila,GCACTA,,N,,scp,JRDD
+,1,M026,Drosophila,GTGCTT,,N,,scp,JRDD
+,1,M121,Drosophila,AAGCCT,,N,,scp,JRDD
+,1,M122,Drosophila,GTCGTA,,N,,scp,JRDD
+,1,M124,Drosophila,GGAGAA,,N,,scp,JRDD
+,1,M125,Drosophila,AGCATG,,N,,scp,JRDD
+,1,M126,Drosophila,GAGTCA,,N,,scp,JRDD
+,2,M018,Drosophila,AACCAG,,N,,scp,JRDD
+,2,M021,Drosophila,TGGTGA,,N,,scp,JRDD
+,2,M022,Drosophila,AGTGAG,,N,,scp,JRDD
+,2,M024,Drosophila,GCACTA,,N,,scp,JRDD
+,2,M026,Drosophila,GTGCTT,,N,,scp,JRDD
+,2,M121,Drosophila,AAGCCT,,N,,scp,JRDD
+,2,M122,Drosophila,GTCGTA,,N,,scp,JRDD
+,2,M124,Drosophila,GGAGAA,,N,,scp,JRDD
+,2,M125,Drosophila,AGCATG,,N,,scp,JRDD
+,2,M126,Drosophila,GAGTCA,,N,,scp,JRDD
+

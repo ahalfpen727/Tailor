@@ -1,0 +1,25 @@
+No input sequence or sequence file specified!
+Bowtie 2 version 2.1.0 by Ben Langmead (langmea@cs.jhu.edu, www.cs.jhu.edu/~langmea)
+Usage: bowtie2-build [options]* <reference_in> <bt2_index_base>
+    reference_in            comma-separated list of files with ref sequences
+    bt2_index_base          write .bt2 data to files with this dir/basename
+*** Bowtie 2 indexes work only with v2 (not v1).  Likewise for v1 indexes. ***
+Options:
+    -f                      reference files are Fasta (default)
+    -c                      reference sequences given on cmd line (as <seq_in>)
+    -a/--noauto             disable automatic -p/--bmax/--dcv memory-fitting
+    -p/--packed             use packed strings internally; slower, uses less mem
+    --bmax <int>            max bucket sz for blockwise suffix-array builder
+    --bmaxdivn <int>        max bucket sz as divisor of ref len (default: 4)
+    --dcv <int>             diff-cover period for blockwise (default: 1024)
+    --nodc                  disable diff-cover (algorithm becomes quadratic)
+    -r/--noref              don't build .3/.4.bt2 (packed reference) portion
+    -3/--justref            just build .3/.4.bt2 (packed reference) portion
+    -o/--offrate <int>      SA is sampled every 2^offRate BWT chars (default: 5)
+    -t/--ftabchars <int>    # of chars consumed in initial lookup (default: 10)
+    --seed <int>            seed for random number generator
+    -q/--quiet              verbose output (for debugging)
+    -h/--help               print detailed description of tool and its options
+    --usage                 print this usage message
+    --version               print version information and quit
+

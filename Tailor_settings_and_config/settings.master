@@ -1,0 +1,557 @@
+#!/bin/bash
+
+#----NOTE----------------------------------------------------------------------------------
+# This settings file is for advanced users that would like to run multiple types of analyses at the same time with one settings file
+#  This file includes all of the tools in the tailor pipeline to allow for de_novo, gtf_guided, and default analyses to be run from one file.
+
+#----PATH PARAMETERS--------------------------------------------------------------------------------------------------------------------------------
+TAILOR=/project/umb_triley/cpct/rna-seq/tailor
+RSYNC=rsync_results
+#RSYNC=/project/umb_cpct/data/jose/hiseq/12.01.2014/141201_D00345_0037_BHBATBADXX/Data/Intensities/BaseCalls
+BCL2FASTQ=bcl2fastq_results
+MERGE_FASTQ_FILES=mergeFastqFiles_results
+LINKS=createLinks_results
+PRE_TRIM_FASTQC=preTrim_fastqc_results
+TRIM=trim_results
+POST_TRIM_FASTQC=postTrim_fastqc_results
+TOPHAT=tophat_results
+CUFFLINKS=cufflinks_results
+CUFFMERGE=cuffmerge_results
+CUFFCOMPARE=cuffcompare_results
+CUFFCOMPARE_MERGE=cuffcompare_merge_results
+CUFFQUANT=cuffquant_results
+CUFFNORM=cuffnorm_results
+CUFFDIFF=cuffdiff_results
+LEAVEOUT=leaveout_results
+GENENAMES=diffGeneNames_results
+CUMMERBUND=cummeRbund_results
+SAMTOOLS=samtools_results
+BAMTOOLS=bamtools_results
+BIONET=bionet_results
+BOWTIE=bowtie_results
+PATHVIEW=pathview_results
+GO=go_results
+MATRIX=matrix_results
+
+# HG19 (GRCh37)
+#HG19_GTF=/project/umb_triley/cpct/rna-seq/drew_mods/hg19/UCSC_HG19/Annotations/HG19_ENSEMBL63_w_ids.gtf 
+#HG19_GTF=/project/umb_triley/cpct/rna-seq/drew_mods/hg19/UCSC_HG19/Annotations/hg19_perfect.gff3 
+#HG19_BOWTIE_INDEX=/project/umb_triley/cpct/rna-seq/drew_mods/hg19/UCSC_HG19/Bowtie2Index/hg19 # DUPLICATE of gtf file defined below
+#HG19_FASTADIR=/project/umb_triley/cpct/rna-seq/drew_mods/hg19/UCSC_HG19/Chromosomes # DUPLICATE of genome file defined below
+#HG19_MULTIFASTA=/project/umb_triley/cpct/rna-seq/drew_mods/hg19/UCSC_HG19/genome.fa # DUPLICATE of genome file defined below
+#HG19_MASK=/project/umb_triley/cpct/rna-seq/drew_mods/hg19/UCSC_HG19/Annotations/phiX.fa
+HG19_FASTADIR=/project/umb_triley/genomes/Homo_sapiens/UCSC/hg19/Sequence/Chromosomes
+HG19_MULTIFASTA=/project/umb_triley/genomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa
+HG19_FAIDX=/project/umb_triley/genomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa.fai
+HG19_BOWTIE_INDEX=/project/umb_triley/genomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome
+HG19_GTF=/project/umb_triley/genomes/Homo_sapiens/UCSC/hg19/Annotation/Genes/genes.gtf
+#HG19_RIBO_BOWTIE_INDEX=/project/umb_triley/cpct/rna-seq/tailor/indexFiles/hg19_ribosomal_index
+#HG19_TRANSCRIPTOME=/project/umb_triley/cpct/rna-seq/urine1/hg38_tophat_transcriptome
+#HG19_MULTIFASTA=/project/umb_triley/cpct/rna-seq/urine1/hg19/tophat_transcriptome_HG19/hg19_perfect.fa
+
+# Current Genome Build GRCH38
+#GRCH38_GTF=/project/umb_triley/cpct/rna-seq/drew_mods/GRCh38/hg19_ensembl.gff
+GRCH38_GTF=/project/umb_triley/cpct/rna-seq/drew_mods/GRCh38/GRCh38_genes.gtf
+#GRCH38_GTF=/project/umb_triley/cpct/rna-seq/drew_mods/GRCh38/hg38_ucsc_tran.gtf
+GRCH38_BOWTIE_INDEX=/project/umb_triley/cpct/rna-seq/drew_mods/GRCh38/Bowtie2Index/genome
+#GRCH38_BOWTIE_INDEX=/project/umb_triley/cpct/rna-seq/drew_mods/GRCh38/GRCh38_hg38_transcriptome/genome
+GRCH38_FASTADIR=/project/umb_triley/cpct/rna-seq/drew_mods/GRCh38/Chromosomes
+GRCH38_MULTIFASTA=/project/umb_triley/cpct/rna-seq/drew_mods/GRCh38/WholeGenomeFasta/genome.fa
+#GRCH38_MULTIFASTA=/project/umb_triley/cpct/rna-seq/drew_mods/GRCh38/GRCh38_hg38_transcriptome/genome.fa
+GRCH38_FAIDX=/project/umb_triley/cpct/rna-seq/drew_mods/GRCh38/WholeGenomeFasta/genome.fa.fai
+#GRCH38_TRANSCRIPTOME=/project/umb_triley/cpct/rna-seq/drew_mods/GRCh38/GRCh38_hg38_transcriptome    
+
+# Mouse genome
+#MM10_FASTADIR=/share/data/umw_biocore/Genomes/UCSC/mm10/Sequence/Chromosomes
+#MM10_MULTIFASTA=/share/data/umw_biocore/Genomes/UCSC/mm10/Sequence/WholeGenomeFasta/genome.fa
+#MM10_BOWTIE_INDEX=/share/data/umw_biocore/Genomes/UCSC/mm10/Sequence/Bowtie2Index/genome
+#MM10_GTF=/share/data/umw_biocore/Genomes/UCSC/mm10/Annotation/Genes/genes.gtf
+
+# Viral Genome Spike in for Illumina calibration and may be useful for normalizing/quantifying gene expression
+#PHIX_BOWTIE_INDEX=/project/umb_triley/cpct/rna-seq/tailor/indexFiles/phiX174_bowtie_index
+#PHIX_MULTIFASTA=/project/umb_triley/cpct/rna-seq/tailor/indexFiles/phiX174
+#PHIX_FASTADIR=/project/umb_triley/cpct/rna-seq/tailor/indexFiles/
+#PHIX_GTF=/project/umb_triley/cpct/rna-seq/tailor/indexFiles/
+
+FASTADIR=$GRCH38_FASTADIR
+MULTIFASTA=$GRCH38_MULTIFASTA
+BOWTIE_INDEX=$GRCH38_BOWTIE_INDEX
+REFERENCE_GTF=$GRCH38_GTF
+FASTA_INDEX=$GRCH38_FAIDX
+#ANNOTATION_INDEX=$GRCH38_TRANSCRIPTOME
+
+#FASTADIR=$HG19_FASTADIR
+#MULTIFASTA=$HG19_MULTIFASTA
+#BOWTIE_INDEXES=$HG19_BOWTIE_INDEX
+#REFERENCE_GTF=$HG19_GTF
+#FASTA_INDEX=$HG19_FAIDX                                    
+#ANNOTATION_INDEX=$HG19_TRANSCRIPTOME
+
+JOBS_OUT_DIR=jobs.out
+JOBS_SCRIPTS_DIR=jobs.scripts
+#--------------------------------------------------------------------------------------------------------------------------------------------
+#----LABEL PARAMETER THAT DIFFERENTIATES THIS RUN OF THE PIPELINE FROM OTHER RUNS-------   #------------------------------------------------------------------------------------------
+
+# The default label is the output label for the initial steps of the tailor pipeline whichare standard for all levels of analysis (default, gtf_guided, de_novo)                     #DEFAULT_LABEL="_default"                                                                   
+
+# The genome label is the output label for the tophat step.  The label identifies the genome to which the raw data was mapped                                                         
+GENOME_LABEL="_hg19"
+#GENOME_LABEL="_grch38"                                                                     
+# The INPUT and OUTPUT labels differentiate the different levels feature discover allowed by the parameters (default for strictly annotated regions, gtf-guided for novel isoform discover, and de_novo for novel gene discovery)                                                #INPUT_LABEL="_default"                                                                    INPUT_LABEL="_GRCh38_gtf_only"
+OUTPUT_LABEL="_grch38_gtf_only"
+#OUTPUT_LABEL="_hg19_gtf_only"                   
+OUTPUT_LABEL1="_GRCh38_unguided"
+OUTPUT_LABEL3="_GRCh38_hg38_ucsc_default"
+OUTPUT_LABEL_0="_GRCh38_hg38_ucsc_de_novo"
+OUTPUT_LABEL2="_GRCh38_gtf_only"
+OUTPUT_LABEL01="_HG19_unguided_mergedGTF_N_u"
+OUTPUT_LABEL0="_HG19_unguided"
+# for differentiating cufflinks runs
+# OUTPUT_LABEL=".$(date +%F_%R)"  # a date-time stamp, example: ".2015-10-16_19:25"
+#---------------------------------------------------------------------------------------------------------------------------------------------------
+
+#----JOB SUBMISSION PARAMETERS---------------------------------------------------------------------
+SCHEDULER=lsf
+EXTRA_SUBMIT_PARAMETERS="-R (hname!='ghpcc-sgi')"
+#--------------------------------------------------------------------------------------------------
+
+#----XVFB-RUN PARAMETERS---------------------------------------------------------------------------
+XVFB_RUN="xvfb-run -a -n 1 -s \"-screen 0 1600x1200x24\""
+#--------------------------------------------------------------------------------------------------
+
+
+#----RSYNC PARAMETERS--------------------------------------------------------------------------------------------------------------------------
+RSYNC_OUTPUT=${RSYNC}${OUTPUT_LABEL01}
+#SOURCE_TYPE="*.bcl"
+#SOURCE_DIR="/full/path/on/source/hostname"
+#SOURCE_HOST="papabear.umb.edu"
+#SOURCE_USER="todd"
+#SOURCE_PASS_FILE="~/${SOURCE_HOST}.pass"  # create this file that contains only the password and then "chmod 600" it SO THAT NO ONE ELSE CAN VIEW IT!
+# WE NEVER PASS THE PASSWORD ON THE COMMAND LINE OR AS AN ENVIRONMENT VARIABLE! THEREFORE, PEOPLE CANNOT SEE IT!!
+# EXTRA_RSYNC_PARAMETERS="-auvz"
+
+# for genome transfer                                                                                                                                                                                         
+EXTRA_RSYNC_PARAMETERS=""  #"-auvZ"
+SOURCE_TYPE="*"
+SOURCE_DIR="/Homo_sapiens/Ensembl/GRCh38/Homo_sapiens_Ensembl_GRCh38.tar.gz" 
+# ftp://ftp.ensembl.org/../pub/current_fasta/homo_sapiens/dna/
+SOURCE_HOST="ussd-ftp.illumina.com"
+SOURCE_USER="igenome"   # G3nom3s4u
+SOURCE_PASS_FILE="~/${SOURCE_HOST}.pass"  # This is a public key generated by illumina
+#location: ftp.broadinstitute.org/bundle
+#username: gsapubftp-anonymous
+#password:
+# rsync -av rsync://ftp.ensembl.org/ensembl/pub/current_embl/homo_sapiens .
+# ftp://gsapubftp-anonymous@ftp.broadinstitute.org/bundle/
+#----------------------------------------------------------------------------------------------------------------------------------------------
+#----BCL2FASTQ PARAMETERS---------------------------------------------------------------------------------------------------------------------
+BCL2FASTQ_INPUT=${RSYNC}${INPUT_LABEL}
+BCL2FASTQ_OUTPUT=$BCL2FASTQ${INPUT_LABEL}
+SAMPLE_SHEETS=("SampleSheet.csv")
+# SAMPLE_SHEETS=("SampleSheet.filledIndex.csv")
+# SAMPLE_SHEETS=("SampleSheet.filledIndex.lanes1-4.csv")
+# SAMPLE_SHEETS=("SampleSheet.filledIndex.lanes1-4.csv" "SampleSheet.filledIndex.lanes5-8.csv")
+BASES_MASK="y51,I6,y51"
+EXTRA_BCL2FASTQ_PARAMETERS="--fastq-cluster-count 0 --no-eamss --force  --no-lane-splitting"
+#----------------------------------------------------------------------------------------------------------------------------------------------
+
+#----MERGE FASTQ FILES PARAMETERS-------------------------------------------------------------------------------------------------------------
+MERGE_INPUT=${BCL2FASTQ}${INPUT_LABEL}
+MERGE_OUTPUT=${MERGE_FASTQ_FILES}${INPUT_LABEL}
+EXTRA_MERGE_PARAMETERS=""
+MERGE_FIND_INPUT_PATTERN='*'
+MERGE_REGEX='(\S+)_(\S+)_(\S+)_(\S+)_(\S+)\.fastq\.gz'  # Group0=everything, Group1=sample, Group2=barCode, Group3=lane
+SAMPLE_INDEX=1
+BARCODE_INDEX=2
+LANE_INDEX=3
+R1_GLOB='*${barcode}*_R1_*.fastq.gz'
+R1_DESTINATION='${sample}_${barcode}_R1.fastq.gz'
+R2_GLOB='*${barcode}*_R2_*.fastq.gz'
+R2_DESTINATION='${sample}_${barcode}_R2.fastq.gz'
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+
+#----LINK PARAMETERS---------------------------------------------------------------------------------------------------------------------------
+
+#  The links should have VERY SHORT meaningful names constructed from the following keywords:
+
+#  CTRL = control, CASE = case, EXP  = experiment, SAMP = sample,  SYMP = symptomatic,  LN   = lane, MPLX = multiplex
+
+#-------------------------------------------------------------------------------------------------------------------------------------------- 
+LINKS_INPUT=${MERGE_FASTQ_FILES}${INPUT_LABEL}
+LINKS_OUTPUT=${LINKS}${INPUT_LABEL}
+LINKS_FILE=createLinks.table  # tab separated table where 1st column is the fastq source file and the 2nd column is the destination link
+EXTRA_LINK_PARAMETERS=""
+#----------------------------------------------------------------------------------------------------------------------------------------------
+
+#----FASTQC PARAMETERS------------------------------------------------------------------------------------------------------------------------------
+FASTQC_INPUT=${LINKS}${INPUT_LABEL}
+FASTQC_OUTPUT=${PRE_TRIM_FASTQC}${INPUT_LABEL}
+FASTQC_FIND_INPUT_PATTERN='*.fastq.gz'
+FASTQC_INPUT_REGEX="(.+)_R(.+)\.fastq\.gz"  # Group1=sample, Group2=pairedNumber
+EXTRA_FASTQC_PARAMETERS=""
+#--------------------------------------------------------------------------------------------------------------------------------------------
+
+#----TRIM PARAMETERS--------------------------------------------------------------------------------------------------------------------------
+TRIM_INPUT=${LINKS}${INPUT_LABEL}
+TRIM_OUTPUT_FASTQC="${POST_TRIM_FASTQC}${INPUT_LABEL}"
+TRIM_OUTPUT_TRIM="${TRIM}${INPUT_LABEL}"
+TRIM_FIND_INPUT_PATTERN='*.fastq.gz'
+TRIM_INPUT_REGEX="(.+)_R(.+)\.fastq\.gz"  # Group1=sample, Group2=pairedNumber
+# EXTRA_TRIM_PARAMETERS='--clip_R1 8 --paired --retain_unpaired ${R1file} ${R2file}'
+EXTRA_TRIM_PARAMETERS='--paired --retain_unpaired ${R1file} ${R2file}'
+#-----------------------------------------------------------------------------
+
+#-----BOWTIE PARAMETERS-----------------------------------------------------------------------------------------------
+REF_SEQS=/project/umb_triley/cpct/rna-seq/drew_mods/GRCh38/GRCh38_87/Homo_sapiens.GRCh38.dna.primary_assembly.fa
+#BOWTIE_INDEX=/project/umb_triley/cpct/rna-seq/urine1/bowtie_results_GRCh38_unmasked/Bowtie2Index/GRCh38_unmasked # Bowtie2 is hard coded to look for this index
+#REF_SEQS=/project/umb_triley/cpct/rna-seq/drew_mods/GRCh38/GRCh38_87/Homo_sapiens.GRCh38.dna.toplevel.fa
+BOWTIE_INPUT=${BOWTIE}${OUTPUT_LABEL01}
+BOWTIE_OUTPUT=${BOWTIE}${OUTPUT_LABEL01}
+
+# BOWTIE2-BUILD PARAMETERS-----------------------------------------------------
+#EXTRA_BOWTIE_PARAMETERS="-f ${REF_SEQS}"
+# Merge all hg19 reference fasta files into one genomes.fa file         
+# cat xyz_directory/hg19/*.fa > genomes.fa  
+
+# BOWTIE2-INSPECT PARAMETERS------------------------------------------------   
+#EXTRA_BOWTIE_PARAMETERS=''
+# -n Print reference sequence names # -s summary # -v verbose
+#BOWTIE_BASENAME='GRCh38_unmasked'
+#  ---------------------------------------------------------------------------
+
+#---EXTRACT GENOME FROM GFF3-------------------------------------------------
+#
+# If the annotation and/or sequence is in GFF3 format, we made need to extract the genome sequence if a separate fasta file is not available. To make a fasta file from data embedded in a GFF3, open a terminal and type:
+
+# >$ cat my_file.gff | awk 'BEGIN { doprint = 0}; \
+#                         doprint == 1 { print $0 }; \
+#                         $0 ~ /#FASTA/ { doprint = 1 }' >my_file.fa
+#------------------- --------------------------------------------------------
+
+#----TOPHAT PARAMETERS------------------------------------------------------------------------------------------------------------------------------
+TOPHAT_INPUT=${TRIM}${INPUT_LABEL}
+TOPHAT_OUTPUT=${TOPHAT}${OUTPUT_LABEL1}
+TOPHAT_FIND_INPUT_PATTERN='*val*.fq.gz'
+TOPHAT_INPUT_REGEX="(.+)_R1"
+# GTF_GUIDED analyses perform gtf assisted de novo discovery. 
+EXTRA_TOPHAT_PARAMETERS='--library-type fr-firststrand'
+
+#EXTRA_TOPHAT_PARAMETERS='-g 1 -G ${REFERENCE_GTF} --coverage-search --microexon-search --fusion-search' 
+# EXTRA_TOPHAT_PARAMETERS='-g 1 -G ${CUFFCOMPARE_MERGE}${OUTPUT_LABEL}/cuffcmp.combined.gtf --coverage-search --microexon-search --fusion-search --library-type fr-firststrand'
+# DEFAULT and GTF_ONLY analyses increase concordant mapping + exclude unannotated splice junc (not in the gtf gff file). 
+# '-g 1  -G ${REFERENCE_GTF} --no-novel-juncs'
+
+# to determine if tophat (or any step) has completed and which samples failed use:
+# > grep -rc "Successfully completed" ./jobs.out/*out
+# to determine mapping rates use:
+# > grep -r concordant ./Sample_*/align_summary.txt >> concordant_mapping                                         
+# > grep -r overall ./Sample_*/align_summary.txt >> overall_mapping                                                        
+# > grep -r multiple ./Sample_*/align_summart.txt >> multiple_mapping 
+#----- DESCRIPTION OF SOME OF TOPHAT's OPTIONS----------------
+# BE AWARE of additional parameters that are hard coded into Tophat and Cuffdiff steps (listed at beginning of the settings file). 
+# The following options can be included in the ${EXTRA_TOPHAT_PARAMETERS} variable
+# "--coverage-search 
+# "--microexon-search --fusion-search# searches for reads incident upon microexons and gene fusions.           
+# "--transcriptome-only"  # Only aligns the reads to the transciptome and report only those mappings as genomic mappings
+# "--read-realign-edit-dist=0" # best alignment after realignment (time intensive)                                       
+# " -g 10" # Maximum number of multi-hits (multiple allowable mappings) to 10                                            
+#EXTRA_TOPHAT_PARAMETERS='-G ${REFERENCE_GTF} --transcriptome-index ${ANNOTATION_INDEX}' # builds a transcriptome (exome) from the wholegenome.fa and GTF file       
+#------------------------------------------------------------------------------
+# BAMTOOLS
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+# /project/umb_triley/cpct/rna-seq/urine1/LUTS_vs_CTRL_gtf_guided/tophat_results_GRCh38_gtf_only
+# TOPHAT_MAP=/project/umb_triley/cpct/rna-seq/urine1/LUTS_vs_CTRL_gtf_guided/tophat_results
+BAMTOOLS_INPUT=${TOPHAT_MAP}${OUTPUT_LABEL1}
+BAMTOOLS_OUTPUT=${BAMTOOLS}${OUTPUT_LABEL1}_coverage
+BAMTOOLS_COMMAND="coverage"
+EXTRA_BAMTOOLS_PARAMETERS=${BAMTOOLS_COMMAND}
+BAMTOOLS_INPUT_REGEX="(.+)_out"   # anything that ends with "_out"
+BAMTOOLS_FIND_INPUT_PATTERN='*_out'
+
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+#---SAMTOOLS PARAMETERS-----------------------------------------------------------------------------------------------------------------------------
+SAMTOOLS_INPUT=${TOPHAT}${OUTPUT_LABEL3}
+#SAMTOOLS_OUTPUT="${SAMTOOLS}${OUTPUT_LABEL}" # add samtools label _toolused to differentiate and create outdir                        
+SAMTOOLS_OUTPUT="${SAMTOOLS}${OUTPUT_LABEL3}_flagstat"
+# produces mapping statistics similar to unix command search but much lower limit for acceptable intronic length 
+#SAMTOOLS_OUTPUT="${SAMTOOLS}${OUTPUT_LABEL}_depth"                                                                                  
+#SAMTOOLS_OUTPUT="${SAMTOOLS}${OUTPUT_LABEL}_mpileup"  
+# depth and mpileup perform coverage assessment and SNP analysis of the input SAM file
+# REGION_BED=/project/umb_triley/cpct/rna-seq/tailor/indexFiles/chr10_region.bed
+# REGION=chr10:44865600-44880545                            
+# REGION-> #Genomic region chr##:####-####
+SAMTOOLS_FIND_INPUT_PATTERN='*_out'
+SAMTOOLS_INPUT_REGEX="(.+)_out"   # anything that ends with "_out"
+EXTRA_SAMTOOLS_PARAMETERS=""
+#---------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#----CUFFLINKS PARAMETERS---------------------------------------------------------------------------------------------------------------------
+CUFFLINKS_INPUT="${TOPHAT}${OUTPUT_LABEL2}"
+CUFFLINKS_OUTPUT="${CUFFLINKS}${OUTPUT_LABEL2}_GTF_guide"
+CUFFLINKS_FIND_INPUT_PATTERN='*_out'
+CUFFLINKS_INPUT_REGEX="(.+)_out"   #anything that ends with "_out"
+# EXTRA_CUFFLINKS_PARAMETERS="-g $REFERENCE_GTF -b $MULTIFASTA"  # --upper-quartile-norm -M $HG19_RIBO_GTF"  # perform novel transcript and spice variant discovery and remove ribosomal genes found in $HG19_RIBO_GTF # tailor analyses with the following parameters with have _g as a suffix
+#EXTRA_CUFFLINKS_PARAMETERS="-b ${FASTADIR}"   # perform novel transcript and spice variant discovery
+# the options above are for gtf_guided transcript assembly with novel transcript discovery enabled
+EXTRA_CUFFLINKS_PARAMETERS="--GTF ${REFERENCE_GTF} -b ${FASTADIR}"  
+# the options above are for gtf_only transcript assemble with semi-novel discovery
+# New spliceoforms contained within annotated genes may be considered
+# but does NOT perform truly novel transcript and spice variant discovery
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+# From Cufflinks manual:
+# -G/--GTF <reference_annotation.(gtf gff){GTF_ONLY]="">     Tells Cufflinks to use the supplied reference annotation (a GFF file) to estimate isoform expression. It will not assemble novel transcripts, and the program will ignore alignments not structurally compatible with any reference transcript.
+# -g/--GTF-guide <reference_annotation.(gtf gff)[GTF_GUIDED]="">     Tells Cufflinks to use the supplied reference annotation (GFF) to guide RABT assembly. Reference transcripts will be tiled with faux-reads to provide additional information in assembly. Output will include all reference transcripts as well as any novel genes and isoforms that are assembled.
+
+# In GTF_GUIDED and GTF_ONLY analyses (major difference is cufflinks option  or -g)                                                  
+#  The tailor workflow is -  cufflinks --> cuffcomparemerge -->cuffquant -->  cuffdiff                                                      
+# If you run cuffcompare with the -r option, the 1st and 2nd columns contain the closest matching reference transcript.
+# This may be useful for identifying  novel spliceoforms discovered during the analysis.                                           
+# After cufflinks, the gtf_guided workflow continues --> cuffcomparemerge --> cuffquant --> cuffdiff. 
+# Cuffcomparemerge output (cuffcmp.combined.gtf) can be used as input for the cuffquant step.
+# The output from cuffquant (.cxb files) and the cuffcmp.combined.gtf are both used as input for the cuffdiff step.
+
+#----CUFFMERGE PARAMETERS---------------------------------------------------------------------------------------------------------------------
+# The input assemblies.txt file contains the full path for all transcripts.gtf files produced by cufflinks and output will be a merged.gtf file that can server as input for cuffdiff
+CUFFMERGE_INPUT="${CUFFLINKS}${OUTPUT_LABEL}"
+CUFFMERGE_OUTPUT="${CUFFMERGE}${OUTPUT_LABEL}"
+CUFFMERGE_INPUT_REGEX="(.+)_out"   # anything that ends with "_out"
+# CUFFMERGE_FIND_INPUT_PATTERN='*_out'
+CUFFMERGE_FIND_INPUT_PATTERN='transcripts.gtf'
+CUFFMERGE_FIND_OUTPUT_FILE='assemblies.txt'
+EXTRA_CUFFMERGE_PARAMETERS="-s ${FASTADIR} -g ${REFERENCE_GTF} --keep-tmp"
+#---------------------------------------------------------------------------------------------------------------------------------------------------
+
+#----CUFFCOMPARE_PARAMETERS-----------------------------------------------------------------------------------------------------------
+# CUFFCOMPARE can be run with the cuffcomparemerge output gtf file and a reference file to produce a stats table 
+# (SP, SN,novel/missed exons)
+CUFFCOMPARE_INPUT="${CUFFCOMPARE}${OUTPUT_LABEL}"
+CUFFCOMPARE_INPUT="${CUFFCOMPARE_MERGE}${OUTPUT_LABEL}"
+CUFFCOMPARE_OUTPUT="${CUFFCOMPARE}${OUTPUT_LABEL}"
+CUFFCOMPARE_FIND_INPUT_PATTERN='cuffcmp.combined.gtf'
+#CUFFCOMPARE_FIND_INPUT_PATTERN='merged.gtf'
+CUFFCOMPARE_ASSEMBLIES_GTF="cuffcmp.combined.gtf" #merged.gtf"
+#CUFFCOMPARE_ASSEMBLIES_GTF="merged.gtf"                
+EXTRA_CUFFCOMPARE_PARAMETERS="-s ${MULTIFASTA} -CG -r ${REFERENCE_GTF} -o cuffcomparemerge"
+
+#---------------------------------------------------------------------------------------------------------------------------------------------
+#---CUFFCOMPARE_MERGE PARAMETERS-------------------------------------------
+#-------------------------------------------------------------------------------------------------------------------------------------------
+# Cuffcompare can be run on all of the transcript.gtf files produced by cufflinks in cuffcomparemerge
+# The output (cuffcmp.combined.gtf file) can then used as input for the cuffdiff step  
+CUFFCOMPARE_MERGE_INPUT="${CUFFLINKS}${OUTPUT_LABEL}"
+CUFFCOMPARE_MERGE_OUTPUT="${CUFFCOMPARE_MERGE}${OUTPUT_LABEL}"
+CUFFCOMPARE_MERGE_FIND_INPUT_PATTERN='transcripts.gtf'
+CUFFCOMPARE_MERGE_FIND_OUTPUT_FILE='assemblies.txt'
+EXTRA_CUFFCOMPARE_MERGE_PARAMETERS="-s ${MULTIFASTA} -GC -r ${REFERENCE_GTF}"
+#--------------------------------------------------------------------------                                                                    
+
+#----CUFFQUANT_PARAMETERS---------------------------------------------------------------------------------------------------------------------------
+CUFFQUANT_INPUT="${TOPHAT}${OUTPUT_LABEL}"
+CUFFQUANT_OUTPUT="${CUFFQUANT}${OUTPUT_LABEL1}"
+CUFFQUANT_INPUT_REGEX="(.+)_out"   # anything that ends with "_out"
+CUFFQUANT_FIND_INPUT_PATTERN='*_out'
+CUFFUANT_FIND_INPUT_FILE='input.list.txt'
+CUFFQUANT_ALIGNMENT_FILE="accepted_hits.bam"
+EXTRA_CUFFQUANT_PARAMETERS="-v ${CUFFCOMPARE_MERGE}${OUTPUT_LABEL1}/cuffcmp.combined.gtf -b ${MULTIFASTA}"
+# EXTRA_CUFFQUANT_PARAMETERS="-v ${CUFFMERGE}${OUTPUT_LABEL1}/merged.gtf -b ${MULTIFASTA}"
+# Cuffquant analyzes and outputs expression values for transcripts in the bam files against a reference gtf file (cuffcmp.combined.gtf )
+# may use either cufflinks --> cuffmerge --> cuffcompare cuffquant/cuffdiff    OR  cufflinks --> cuffcomparemerge ---> cuffquant/cuffdiff
+# OR cufflinks --> cuffmerge --> cuffquant/cuffdiff
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+
+#----CUFFDIFF_PARAMETERS------------------------------------------------------------------------------------------------------------------------
+#CUFFDIFF_INPUT_GTF="${REFERENCE_GTF}"  # simpler (no novel genes included). Requires reference genome and reference annotation in GFF format
+#CUFFDIFF_INPUT_GTF="${CUFFMERGE}${OUTPUT_LABEL0}/merged.gtf"  
+CUFFDIFF_INPUT_GTF="${CUFFCOMPARE_MERGE}${OUTPUT_LABEL}/cuffcmp.combined.gtf"
+# Allows novel (and fully annotated) transcripts discovered by tailor during the tophat/cufflinks step to be tested for differential expression.
+# Dont use the REFERENCE gtf. This is the only novel analysis and chance to discover new genes and new splice variants 
+# Reccomendation is for CUFFCOMPARE_MERGE rather than cuffmerge
+#CUFFDIFF_INPUT_ALIGNMENTS="${TOPHAT}${INPUT_LABEL2}"
+CUFFDIFF_INPUT_ALIGNMENTS="${CUFFQUANT}${OUTPUT_LABEL}"
+#  When cuffquant is included, the cuffquant output, cxb files, are used as the input alignments.
+#  This modification reducues compuational load and CPU time for the cuffdiff step.
+CUFFDIFF_OUTPUT="${CUFFDIFF}${OUTPUT_LABEL}"
+CUFFDIFF_FOLDCHANGE_OUTPUT='${experiment2Name}-over-${experiment1Name}'
+CUFFDIFF_ALIGNMENT_FILE="abundances.cxb"
+# CUFFDIFF_ALIGNMENT_FILE="accepted_hits.bam"
+# EXTRA_CUFFDIFF_PARAMETERS='-N -u -L ${experiment1Name},${experiment2Name} -b ${MULTIFASTA} -M $HG19_RIBO_GTF'       
+EXTRA_CUFFDIFF_PARAMETERS='-N -u -L ${experiment1Name},${experiment2Name} -b ${MULTIFASTA}'
+
+# Group 0: CTRL
+experimentNames[0]="CTRL";
+declare -a experimentGroups0=( \
+    Sample_3 \
+    Sample_5 \
+    Sample_7 \
+    Sample_9 \
+    Sample_11 \
+    Sample_13 \
+    Sample_15 \
+    Sample_17 \
+    Sample_19 \
+    );
+
+# Group 1: LUTS
+experimentNames[1]="LUTS";
+declare -a experimentGroups1=( \
+    Sample_4 \
+    Sample_6 \
+    Sample_8 \
+    Sample_10 \
+    Sample_12 \
+    Sample_14 \
+    Sample_16 \
+    Sample_18 \
+    Sample_20 \
+    );
+
+NUM_COMPARISONS='1'
+# Comparison 1: LUTS over CTRL
+ declare -a cuffdiff0=(0 1)  # cuffdiff(group0 group1) calculates group1-over-group0 expression fold-change
+
+# Comparison 2: GROUP2 over GROUP0
+# declare -a cuffdiff1=(0 2)  # cuffdiff(group0 group2) calculates group2-over-group0 expression fold-change
+
+# Comparison 3: GROUP3 over GROUP0
+# declare -a cuffdiff2=(0 3)  # cuffdiff(group0 group3) calculates group3-over-group0 expression fold-change
+
+#----------------------------------------------------------------------------------------- #----CUFFNORM_PARAMETERS--------------------------------------------------------------------------------------------------------------------
+#
+# Normalizes cufflinks fpkm values to counts in a table format or in cuffdiff format to be used by count based tools like edgeR and DEseq
+#
+#----------------------------------------------------------------------------------------------------------                                      
+CUFFNORM_INPUT="${CUFFQUANT}${OUTPUT_LABEL}"
+CUFFNORM_OUTPUT="${CUFFNORM}${OUTPUT_LABEL}"
+CUFFNORM_FOLDCHANGE_OUTPUT='${experiment2Name}-over-${experiment1Name}'
+NUM_COMPARISONS='1'
+# Comparison 1: GROUP1 over CTRL
+ declare -a cuffnorm0=(0 1)  # cuffnorm(group0 group1) calculates group1-over-group0 expression fold-change
+
+# Comparison 2: GROUP2 over GROUP0
+# declare -a cuffnorm1=(0 2)  # cuffnorm(group0 group2) calculates group2-over-group0 expression fold-change
+
+# Comparison 3: GROUP3 over GROUP0
+# declare -a cuffnorm2=(0 3)  # cuffnorm(group0 group3) calculates group3-over-group0 expression fold-change
+
+CUFFNORM_ALIGNMENT_FILE="abundances.cxb"
+# CUFFNORM_ALIGNMENT_FILE="accepted_hits.bam"
+EXTRA_CUFFNORM_PARAMETERS='${CUFFCOMPARE}${OUTPUT_LABEL}/cuffcmp.combined.gtf -output-format cuffdiff -L ${experiment1Name},${experiment2Name}'
+#----------------------------------------------------------------------------------------------------------------------------------------
+
+#----LAUNCHR_PARAMETERS-------------------------------------------------------------------------------------------------------------------------
+# laucnhes the cummerbund, bionet, go, and pathview R scripts via the launchr shell scripts
+# To run the R analyses on CUFFNORM data some variables need to be changed BE AWARE!
+# If you are running cummeRbund you need to enter the expected memory usage with the variable below
+#  The GTF_GUIDED and DEFAULT analyses should complete with 32 GB, the DE_NOVO analysis may need upward of 70 GB
+
+MEMORY="85000"       # 2048=2G, 4096=4G, 8192=8G, 16384=16G, 32768=32G, 65536=64G
+#LAUNCHR_INPUT="${CUFFNORM}${OUTPUT_LABEL}"
+LAUNCHR_INPUT="${CUFFDIFF}${OUTPUT_LABEL}"
+LAUNCHR_OUTPUT='${1}_results${OUTPUT_LABEL}'
+
+# These LaunchR variables are for the CummeRbund ste[
+LAUNCHR_EACHDIFFDIR_FIND_INPUT_DIR='${INPUT}'
+LAUNCHR_EACHDIFFDIR_FIND_INPUT_PATTERN='*-over-*'
+
+# These LaunchR variables are for the Pathview, GO, and Bionet steps
+LAUNCHR_EACHDIFFFILE_FIND_INPUT_DIR='${INPUT}/*-over-*'
+
+# The variable below has been modified to take cuffnorm output as input.
+#LAUNCHR_EACHDIFFFILE_FIND_INPUT_PATTERN='*fpkm_tracking'  
+
+# The INPUT PATTERN below is modified to take cuffdiff output as input 
+LAUNCHR_EACHDIFFFILE_FIND_INPUT_PATTERN='*_exp.diff'
+LAUNCHR_INPUT_REGEX="(.+)-over-(.+)"
+#----------------------------------------------------------------------------------------------------------------------------------------------
+
+#----CUMMERBUND PARAMETERS--------------------------------------------------------------------------------------------------------------------------
+CUMMERBUND_OUTPUT=${CUMMERBUND}${OUTPUT_LABEL}
+CUMMERBUND_GENE_LIST='CXCL12,CXCR4,TGFB,MAPK,IL8,CCL5'
+CUMMERBUND_INPUT_GTF="${CUFFCOMPARE}${OUTPUT_LABEL}/cuffcmp.combined.gtf"
+#CUMMERBUND_INPUT_GTF="${CUFFMERGE}${OUTPUT_LABEL1}/merged.gtf"
+#CUMMERBUND_INPUT_GTF="${REFERENCE_GTF}"                                            
+R_GENOME="hg38"
+FPKM_MATRIX="fpkmMatrix.csv"
+
+export FPKM_MATRIX
+export GENOME_PATH
+export R_GENOME
+export CUMMERBUND_INPUT_GTF
+export GENE_LIST
+#---------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#----BIONET PARAMETERS------------------------------------------------------------------------------------------------------------------------------
+ BIONET_OUTPUT=${BIONET}${OUTPUT_LABEL}
+ BIONET_GENE_ALPHA_VALUE=0.5
+ BIONET_SUBNET_ALPHA_VALUE=0.1
+ BIONET_NUMBER_NETWORKS=20
+
+ export BIONET_GENE_ALPHA_VALUE
+ export BIONET_SUBNET_ALPHA_VALUE
+ export BIONET_NUMBER_NETWORKS
+
+#----GO PARAMETERS----------------------------------------------------------------------------------------------------------------------------------
+GO_OUTPUT=${GO}${OUTPUT_LABEL}
+GO_DIFF_EXPRESSED_ALPHA_VALUE=0.1   # Alpha value for classifying genes as differentially expressed
+GO_HYPER_GEO_ALPHA_VALUE=0.01   #Alpha value for enrichment of differentially expressed genes is a category
+
+export GO_DIFF_EXPRESSED_ALPHA_VALUE
+export GO_HYPER_GEO_ALPHA_VALUE
+#---------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#----PATHVIEW PARAMETERS----------------------------------------------------------------------------------------------------------------------------
+PATHVIEW_OUTPUT=${PATHVIEW}${OUTPUT_LABEL}
+PATHVIEW_SPECIES="human"   # pathview common.name ("human" or "mouse", etc.)
+PATHVIEW_ALPHA_DOWN=0.2  # Alpha value for genes that are under expressed in the case
+PATHVIEW_ALPHA_UP=0.2   # Alpha value for genes that are over expressed in the case
+PATHVIEW_NUMBER_PATHWAYS_DOWN=30
+PATHVIEW_NUMBER_PATHWAYS_UP=30
+PATHVIEW_PATHWAYS_LIST=""
+
+export PATHVIEW_SPECIES
+export PATHVIEW_ALPHA_DOWN
+export PATHVIEW_ALPHA_UP
+export PATHVIEW_NUMBER_PATHWAYS_DOWN
+export PATHVIEW_NUMBER_PATHWAYS_UP
+export PATHVIEW_PATHWAYS_LIST
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+#----MATRIX PARAMETERS-------------------------------------------------------------------------------------------------------------
+MATRIX_OUTPUT=${MATRIX}${OUTPUT_LABEL}
+MATRIX_INPUT=${CUFFDIFF}${OUTPUT_LABEL}/
+MATRIX_VALUE_X=""
+MATRIX_VALUE_n=""
+ 
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+ALL_RESULTS_DIRS=( \
+    ${RSYNC_OUTPUT} \
+    ${BCL2FASTQ_OUTPUT} \
+    ${MERGE_FASTQ_FILES_OUTPUT} \
+    ${LINKS_OUTPUT} \
+    ${FASTQC_OUTPUT} \
+    ${TRIM_OUTPUT} \
+    ${TOPHAT_OUTPUT} \
+    ${CUFFLINKS_OUTPUT} \
+    ${CUFFMERGE_OUTPUT} \
+    ${CUFFCOMPARE_OUTPUT} \
+    ${CUFFCOMPARGE_MERGE_OUTPUT} \
+    ${CUFFQUANT_OUTPUT} \
+    ${CUFFNORM_OUTPUT} \
+    ${SAMTOOLS_OUTPUT} \
+    ${BAMTOOLS_OUTPUT} \
+    ${CUFFDIFF_OUTPUT} \
+    ${LEAVEOUT_OUTPUT} \
+    ${GENENAMES_OUTPUT} \
+    ${CUMMERBUND_OUTPUT} \
+    ${BIONET_OUTPUT} \
+    ${BOWTIE2INSPECT_OUTPUT} \
+    ${BOWTIE2BUILD_OUTPUT} \
+    ${PATHVIEW_OUTPUT} \
+    ${GO_OUTPUT} \
+    ${MATRIX_OUTPUT} \
+    );

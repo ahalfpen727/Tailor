@@ -1,0 +1,646 @@
+#!/bin/bash
+
+
+if [ -z "$1" ]; then
+    echo -ne "\nTAILOR - an automated, complete, HPC RNA-seq pipeline from FASTQ files to Network Analysis"
+    echo -ne "\n"
+    echo -ne "\nUSAGE: tailor <command> <args>"
+    echo -ne "\n"
+    echo -ne "\nCONFIGURATION FILES:" # settings.sh and createLinks.table"
+    echo -ne "\n"
+    echo -ne "\n\tsettings.sh  - Contains all the parameters for each Tailor command"
+    echo -ne "\n"
+    echo -ne "\n\tlinks.table  - a table for creating short, meaningful links to the long FASTQ file names"
+    # echo -ne "\n\tpossibly ambiguous FASTQ file names. The 1st column contains the original FASTQ file name and the"
+    # echo -ne "\n\t2nd contains the short, meaningful link name"
+    echo -ne "\n"
+    echo -ne "\nCOMMANDS:"
+    echo -ne "\n"
+    echo -ne "\n\tall          - launches all the Tailor steps in succession"
+    echo -ne "\n"
+    echo -ne "\n\trsync        - copies all BCL or FASTQ files from the source machine to the destination machine"
+    echo -ne "\n"
+    echo -ne "\n\tbcl2fastq    - converts BCL files to FASTQ files"
+    echo -ne "\n"
+    echo -ne "\n\tmergeFastq   - merges FASTQ files from technical replicates before alignment"
+    echo -ne "\n"
+    echo -ne "\n\tcreateLinks  - creates short, meaningful hard links to the original FASTQ files"
+    echo -ne "\n"
+    echo -ne "\n\tfastqc       - performs quality control on the FASTQ files"
+    echo -ne "\n"
+    echo -ne "\n\ttrim         - trims off contaminants (adapters and excessive nucleotides) and perform fastqc after trimming"
+    echo -ne "\n"
+    echo -ne "\n\ttophat       - aligns reads to the genome and calculates alignments, junctions, insertions, and deletions"
+    echo -ne "\n"
+    echo -ne "\n\tcufflinks    - quantifies gene expression for each experiment"
+    echo -ne "\n"
+    echo -ne "\n\tcuffmerge    - merges together all the Cufflinks assemblies"
+    echo -ne "\n"
+    echo -ne "\n\tcuffcompare  - analyzes and compares the assembled transfrags of one gtf file to the reference annotation"
+    echo -ne "\n"
+    echo -ne "\n\tcuffcomparemerge  - analyzes the assembled transfrags from all cufflink's gtf assembly files"
+    echo -ne "\n"
+    echo -ne "\n\tcuffquant  - quantifies the gene expression for the assembled transfrags"
+    echo -ne "\n"
+    echo -ne "\n\tcuffnorm  - normalizes expression of the assembled transfrags but does not perform difference testing"
+    echo -ne "\n"
+    echo -ne "\n\tcuffdiff     - finds significant changes in transcript expression, splicing, and promoter use"
+    echo -ne "\n"
+    echo -ne "\n\texcel -      - creates an excel workbook with a spreadsheet for each .diff file from the cuffdiff step"
+    echo -ne "\n"
+    echo -ne "\n\tgenenames    - annotates CuffDiff gene_exp.diff files with gene names"
+    echo -ne "\n"
+    echo -ne "\n\tcummerbund   - automatically creates many plots to visualize cuffdiff DGE results"
+    echo -ne "\n"
+    echo -ne "\n\tbionet       - A GSEA that finds differentially expressed subnetworks in a PPI network"
+    echo -ne "\n"
+    echo -ne "\n\tgo           - A GSEA that uses DGE results to find significantly differentially expressed Gene Ontology (GO) categories"
+    echo -ne "\n"
+    echo -ne "\n\tpathview     - A GSEA that maps DGE results onto defined regulatory pathways"
+    echo -ne "\n"
+    echo -ne "\nMORE COMMANDS"
+    echo -ne "\n"
+    echo -ne "\n\tclean            - cleans log files in all the results directories"
+    echo -ne "\n"
+    echo -ne "\n\tclean <dir>      - cleans log files in the specified results directory"
+    echo -ne "\n"
+    echo -ne "\n\tclobber          - completely clobbers (erases) all the results directories"
+    echo -ne "\n"
+    echo -ne "\n\tclobber <dir>    - completely clobbers (erases) the specified results directory"
+    echo -ne "\n"
+    echo -ne "\n\tarchive          - archives all the results directories to save disk space"
+    echo -ne "\n"
+    echo -ne "\n\tarchive <dir>    - archives the specified results directory to save disk space"
+    echo -ne "\n"
+    echo -ne "\n\tunarchive        - unarchives all the results directories"
+    echo -ne "\n"
+    echo -ne "\n\tunarchive <dir>  - unarchives the specified results directory"
+    echo -ne "\n"
+    exit
+fi
+
+#----SETTINGS--------------------------------------------------------------------
+if [ -z ${TAILOR_CONFIG+x} ]; then
+    echo -e "\nEnvironment variable TAILOR_CONFIG is not set!\n"
+    exit
+elif [ ! -f "${TAILOR_CONFIG}" ]; then
+    echo -e "\nSettings file ${TAILOR_CONFIG} does not exist!\n"
+    exit
+else
+    echo -e "\nUsing settings file ${TAILOR_CONFIG}.\n"
+fi
+
+source "${TAILOR_CONFIG}"
+#--------------------------------------------------------------------------------
+
+
+#--------------------------------------------------------------------------------
+#----CLEAN LOG FILES IN ALL OR A SPECIFIED RESULTS DIRECTORY---------------------
+#--------------------------------------------------------------------------------
+if [ $1 == "clean" ]; then
+
+    if [ -n "$2" ] && [ -d "$2" ]; then
+	rm -f  $2/*.log
+	rm -f  $2/*.out
+	rm -f  $2/*.txt
+	rm -rf $2/jobs.out
+	rm -rf $2/scripts
+    else
+	for i in ${!ALL_RESULTS_DIRS[*]}
+	do
+	    if [ -n "${ALL_RESULTS_DIRS[$i]}" ] && [ "${ALL_RESULTS_DIRS[$i]}" != "" ]; then
+		rm -f  ${ALL_RESULTS_DIRS[$i]}/*.log
+		rm -f  ${ALL_RESULTS_DIRS[$i]}/*.out
+		rm -f  ${ALL_RESULTS_DIRS[$i]}/*.txt
+		rm -rf ${ALL_RESULTS_DIRS[$i]}/jobs.out
+		rm -rf ${ALL_RESULTS_DIRS[$i]}/scripts
+	    fi
+	done
+    fi
+    exit
+
+#--------------------------------------------------------------------------------
+#----COMPLETELY CLOBBER ALL OR A SPECIFIED RESULTS DIRECTORY-----------------------
+#--------------------------------------------------------------------------------
+elif [ $1 == "clobber" ]; then
+
+    if [ -n "$2" ] && [ -d "$2" ]; then
+	rm -rf $2/*
+    else
+	for i in ${!ALL_RESULTS_DIRS[*]}
+	do
+	    if [ -n "${ALL_RESULTS_DIRS[$i]}" ] && [ "${ALL_RESULTS_DIRS[$i]}" != "" ]; then
+		rm -rf ${ALL_RESULTS_DIRS[$i]}/*
+	    fi
+	done
+    fi
+    exit
+
+#--------------------------------------------------------------------------------
+#----FIND ERRORS IN ANY STEP-----------------------------------------------------
+#--------------------------------------------------------------------------------
+elif [ $1 == "errors" ]; then
+
+    grep -nERHI --include=*.{error,out} "rror|erminated|illed|fault" *
+    exit
+
+#--------------------------------------------------------------------------------
+#----ARCHIVE ALL OR A SPECIFIED RESULTS DIRECTORY--------------------------------
+#--------------------------------------------------------------------------------
+elif [ $1 == "archive" ]; then
+
+    if [ -n "$2" ] && [ -d "$2" ]; then
+	tar -zcvf $2.tar.gz $2
+	rm -rf $2
+    else
+	for i in ${!ALL_RESULTS_DIRS[*]}
+	do
+	    if [ -n "${ALL_RESULTS_DIRS[$i]}" ] && [ "${ALL_RESULTS_DIRS[$i]}" != "" ]; then
+		tar -zcvf ${ALL_RESULTS_DIRS[$i]}.tar.gz ${ALL_RESULTS_DIRS[$i]}
+		rm -rf ${ALL_RESULTS_DIRS[$i]}
+	    fi
+	done
+    fi
+    exit
+
+#--------------------------------------------------------------------------------
+#----UNARCHIVE ALL OR A SPECIFIED RESULTS DIRECTORY------------------------------
+#--------------------------------------------------------------------------------
+elif [ $1 == "unarchive" ]; then
+
+    if [ -n "$2" ] && [ -f "$2" ]; then
+	tar -zxvf $2
+	rm -f $2
+    else
+	for i in ${!ALL_RESULTS_DIRS[*]}
+	do
+	    if [ -n "${ALL_RESULTS_DIRS[$i]}" ] && [ "${ALL_RESULTS_DIRS[$i]}" != "" ] && [ -f "${ALL_RESULTS_DIRS[$i]}.tar.gz" ]; then
+		tar -zxvf ${ALL_RESULTS_DIRS[$i]}.tar.gz
+		rm -f ${ALL_RESULTS_DIRS[$i]}.tar.gz
+	    fi
+	done
+    fi
+    exit
+
+fi
+
+
+###############################################################################################################
+###############################################################################################################
+#
+# EACH STEP BELOW MUST BE RUN SEQUENTIALLY
+#
+#  - each step uses many cores and runs jobs in parallel as much as possible!
+#  - each step sends you emails when the jobs start executing and when they are finished so
+#    that you know when to submit the jobs for the next step
+#  - YOU MUST SET THE $LSB_MAILTO TO YOUR EMAIL ADDRESS!!
+#        example: export LSB_MAILTO=todd.riley@umb.edu
+#
+###############################################################################################################
+###############################################################################################################
+
+
+#--------------------------------------------------------------------------------------------------------------
+# Disable the "all" option for now
+#--------------------------------------------------------------------------------------------------------------
+if [ $1 == "all" ]; then
+    echo -e "\nSorry, the \"all\" option is currently disabled. Please specify a particular step.\n"
+    exit
+fi
+
+if [ $1 == "test" ]; then
+    bash test.sh
+    exit
+fi
+
+#--------------------------------------------------------------------------------------------------------------
+# RSYNC all BCL or FASTQ files from the source machine to the destination machine
+#
+# - The SysBio Ball pipeline is run on the destinatin machine
+#--------------------------------------------------------------------------------------------------------------
+if [ $1 == "rsync" ] || [ $1 == "all" ]; then
+    if [ ! -d ${RSYNC_OUTPUT} ]; then  mkdir ${RSYNC_OUTPUT}; fi
+    bash -v rsync.sh 2>&1 | tee ${RSYNC}/rsync.sh.out
+fi
+
+
+#--------------------------------------------------------------------------------------------------------------
+# bcl2fastq - convert BCL files to FASTQ files
+#--------------------------------------------------------------------------------------------------------------
+if [ $1 == "bcl2fastq" ] || [ $1 == "all" ]; then
+    if [ ! -d ${BCL2FASTQ_OUTPUT} ]; then  mkdir ${RSYNC_OUTPUT}; fi
+    bash -v bcl2fastq.sh 2>&1 | tee ${BCL2FASTQ_OUTPUT}/bcl2fastq.sh.out
+fi
+
+
+#--------------------------------------------------------------------------------------------------------------
+# mergeFastqFiles - convert BCL files to FASTQ files
+#--------------------------------------------------------------------------------------------------------------
+if [ $1 == "mergeFastq" ] || [ $1 == "all" ]; then
+    if [ ! -d ${MERGE_OUTPUT} ]; then  mkdir ${MERGE_OUTPUT}; fi
+    bash -v mergeFastqFiles.sh 2>&1 | tee ${MERGE_OUTPUT}/mergeFastq.sh.out
+fi
+
+
+#--------------------------------------------------------------------------------------------------------------
+# Create hardlinks to the original FASTQ files.
+#
+#  - The links should have VERY SHORT meaningful names constructed from the following keywords:
+#
+#    CTRL = control
+#    CASE = case
+#    EXP  = experiment
+#    SAMP = sample
+#    SYMP = symptomatic
+#    LN   = lane
+#    MPLX = multiplex
+#--------------------------------------------------------------------------------------------------------------
+if [ $1 == "createLinks" ] || [ $1 == "all" ]; then
+    if [ ! -d ${LINKS_OUTPUT} ]; then  mkdir ${LINKS_OUTPUT}; fi
+    bash -v createLinks.sh 2>&1 | tee ${LINKS_OUTPUT}/createLinks.sh.out
+fi
+
+#--------------------------------------------------------------------------------------------------------------
+# fastqc - perform Quality Control on the FASTQ files
+# This creates 2 directories with output in HTML format for visual inspection in a browser, key statistics and tests are in text file
+# The zip files generated can be deleted
+#--------------------------------------------------------------------------------------------------------------
+if [ $1 == "fastqc" ] || [ $1 == "all" ]; then
+    if [ ! -d ${FASTQC_OUTPUT} ]; then  mkdir ${FASTQC_OUTPUT}; fi
+    bash -v fastqc.sh 2>&1 | tee ${FASTQC_OUTPUT}/fastqc.sh.out
+fi
+
+
+
+#--------------------------------------------------------------------------------------------------------------
+# Trim - trim off contaminants (adapters and excessive nucleotides) and performs
+# quality control of reads after trimming
+#--------------------------------------------------------------------------------------------------------------
+if [ $1 == "trim" ] || [ $1 == "all" ]; then
+    if [ ! -d ${TRIM_OUTPUT_TRIM} ]; then  mkdir ${TRIM_OUTPUT_TRIM}; fi
+    bash -v trim.sh 2>&1 | tee ${TRIM_OUTPUT_TRIM}/trim.sh.out
+fi
+
+#-----------------------------------------------------------------------------
+# Tophat - aligns reads to the genome and calculates alignments, junctions, insertions, and deletions
+# This produces the $TOPHAT folder with the following files:
+# 	accepted_hits.bam, junctions.bed, insertions.bed, deletions.bed
+# single-tophat
+# In the case of a single (or several) samples that fail, single-tophat can
+# be used to re-submit a single ${SAMPLE} 
+#------------------------------------------------------------------------------
+
+if [ $1 == "tophat" ] || [ $1 == "all" ]; then
+    if [ ! -d ${TOPHAT_OUTPUT} ]; then  mkdir ${TOPHAT_OUTPUT}; fi
+    bash -v tophat.sh 2>&1 | tee ${TOPHAT_OUTPUT}/tophat.sh.out
+fi
+
+#--------------------------------------------------------------------------------------------------------------
+# Cufflinks - quantifies gene expression for each experiment
+#
+# In NGS RNA-seq experiments, quantitative gene expression data is normalized for total gene/transcript length
+# and the number of sequencing reads, and reported as:
+#   RPKM: Reads Per Kilobase of exon per Million mapped reads. Used for reporting data based on single-end reads
+#   FPKM: Fragments Per Kilobase of exon per Million fragments. Used for reporting data based on paired-end fragments
+#--------------------------------------------------------------------------------------------------------------
+
+if [ $1 == "cufflinks" ] || [ $1 == "all" ]; then
+    if [ ! -d ${CUFFLINKS_OUTPUT} ]; then  mkdir ${CUFFLINKS_OUTPUT}; fi
+    bash -v cufflinks.sh 2>&1 | tee ${CUFFLINKS_OUTPUT}/cufflinks.sh.out
+fi
+
+#--------------------------------------------------------------------------------------------------
+# cuffmerge - allows you to merge together several Cufflinks assemblies.
+#
+#    - NOTE: TYPICALLY AN RNA-SEQ PIPELINE USES CUFFMERGE OR CUFFCOMPARE, BUT NOT BOTH!
+#    - In most circumstances, Cole Trapnell recommends using cuffmerge over cuffcompare
+#
+# It also handles running Cuffcompare for you, and automatically filters a number of transfrags that are
+# probably artfifacts. If you have a reference GTF file available, you can provide it to the script in order to
+# gracefully merge novel isoforms and known isoforms and maximize overall assembly quality. The main purpose of
+# this script is to make it easier to make an assembly GTF file suitable for use with Cuffdiff.
+#   - AUTOMATICALLY CALLS CUFFCOMPARE
+#--------------------------------------------------------------------------------------------------------------
+if [ $1 == "cuffmerge" ] || [ $1 == "all" ]; then
+    if [ ! -d ${CUFFMERGE_OUTPUT} ]; then  mkdir ${CUFFMERGE_OUTPUT}; fi
+    bash -v cuffmerge.sh 2>&1 | tee ${CUFFMERGE_OUTPUT}/cuffmerge.sh.out
+fi
+
+#--------------------------------------------------------------------------------------------------------------
+# cuffcompare - help analyze the transfrags you assemble.
+# generally cuffcompare is run on the output of cuffmerge.
+# cuffcomparemerge runs cuffcompare on a list of transcript.gtf files produced by cufflinks
+# The programs cuffcompare and cuffcomparemerge help you:  
+#   - Compare your assembled transcripts to a reference annotation
+#    - Track Cufflinks transcripts across multiple experiments (e.g. across a time course)
+# The files produced by these steps include:
+#     cuffcmp.transcripts.gtf.tmap, cuffcmp.transcripts.gtf.refmap,cuffcmp.tracking,
+#     cuffcmp.stats, cuffcmp.loci, cuffcmp.combined.gtf, cuffcmp.stats
+#     cuffcmp.combined.gtf-->  Reports a GTF file containing the "union" of all transfrags in each sample
+#  Reports statistics related to the "accuracy" of the transcripts when compared to the reference annotation data.
+#  Gene finding measures of "sensitivity" and "specificity" are calculated at various levels 
+#   Sn, Sp, fuzzy Sn and Sp, matching, novel  (nucleotide, exon, intron, transcript, gene)
+
+##--------------------------------------------------------------------------------------------------------------
+if [ $1 == "cuffcompare" ] || [ $1 == "all" ]; then
+    if [ ! -d ${CUFFCOMPARE_OUTPUT} ]; then  mkdir ${CUFFCOMPARE_OUTPUT}; fi
+    bash -v cuffcompare.sh 2>&1 | tee ${CUFFCOMPARE_OUTPUT}/cuffcompare.sh.out
+fi
+##--------------------------------------------------------------------------------------------------------------
+
+##--------------------------------------------------------------------------------------------------------------
+#-------- cuffcompare-merge--------------------------------------------------------------------------------
+# Cuffcompare-merge performs a cuffcompare-ison  of all samples to the reference annotation to characterize and produce tracking statistics
+# about experiment level transcript similarity to the reference annotation.
+##--------------------------------------------------------------------------------------------------------------
+
+if [ $1 == "cuffcomparemerge" ] || [ $1 == "all" ]; then
+    if [ ! -d ${CUFFCOMPARE_MERGE_OUTPUT} ]; then  mkdir ${CUFFCOMPARE_MERGE_OUTPUT}; fi
+    bash -v cuffcompare_merge.sh 2>&1 | tee ${CUFFCOMPARE_MERGE_OUTPUT}/cuffcompare_merge.sh.out
+fi
+
+##-------------------------------------------------------------------------------------------------------------------------
+##-------------------------------------------------------------------------------------------------------------------------
+#-------- singleCuffcompare--------------------------------------------------------------------------------
+# performs a cuffcompare-ison  a comparison of each individual cufflinks assembly against the  reference annotation to 
+# characterize and produce tracking statistics about sample level transcript similarity to the reference annotation.
+##--------------------------------------------------------------------------------------------------------------------------
+
+if [ $1 == "singleCuffcompare" ] || [ $1 == "all" ]; then
+    if [ ! -d ${SCUFFCOMPARE_OUTPUT} ]; then  mkdir ${SCUFFCOMPARE_OUTPUT}; fi
+    bash -v singleCuffcompare.sh 2>&1 | tee ${SCUFFCOMPARE_OUTPUT}/singleCuffcompare.sh.out
+fi
+
+##--------------------------------------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------------------------------------
+# CUFFQUANT - quantifies 
+#------------------------------------------
+
+if [ $1 == "cuffquant" ] || [ $1 == "all" ]; then
+    if [ ! -d ${CUFFQUANT_OUTPUT} ]; then  mkdir ${CUFFQUANT_OUTPUT}; fi
+    bash -v cuffquant.sh 2>&1 | tee ${CUFFQUANT_OUTPUT}/cuffquant.sh.out
+fi
+
+#------------------------------------------------------------------------------------------------------------                                  
+
+#--------------------------------------------------------------------------------------------------------------
+# CUFFNORM - normalizes and quantifies gene exprssion for use in edgeR DEseq and other count based differential expression analysis methods    
+#------------------------------------------                                                                                                    
+
+if [ $1 == "cuffnorm" ] || [ $1 == "all" ]; then
+    if [ ! -d ${CUFFNORM_OUTPUT} ]; then  mkdir ${CUFFNORM_OUTPUT}; fi
+    bash -v cuffnorm.sh 2>&1 | tee ${CUFFNORM_OUTPUT}/cuffnorm.sh.out
+fi
+
+#------------------------------------------                                                                                                    
+# cuffdiff - find significant changes in transcript expression, splicing, and promoter use
+#   - Run Cuffdiff by using the merged transcriptome assembly along with the BAM files from TopHat for each replicate
+#   - The default is to use hyper geometric
+#--------------------------------------------------------------------------------------------------------------
+if [ $1 == "cuffdiff" ] || [ $1 == "all" ]; then
+    if [ ! -d ${CUFFDIFF_OUTPUT} ]; then  mkdir ${CUFFDIFF_OUTPUT}; fi
+    bash -v cuffdiff.sh 2>&1 | tee ${CUFFDIFF_OUTPUT}/cuffdiff.sh.out
+fi
+
+#--------------------------------------------------------------------------------------------------------------
+# excel - create an excel workbook with a spreadsheet for each .diff file from the cuffdiff step.
+#--------------------------------------------------------------------------------------------------------------
+if [ $1 == "excel" ] || [ $1 == "all" ]; then
+    if [ ! -d ${EXCEL_OUTPUT} ]; then  mkdir ${EXCEL_OUTPUT}; fi
+    bash -v launchR.eachDiffDir.sh excel 2>&1 | tee ${EXCEL_OUTPUT}/launchR.eachDiffDir.sh.excel.out
+fi
+#--------------------------------------------------------------------------------------------------------------
+# diffExpXgeneName - custom script for Annotating CuffDiff gene_exp.diff files with Gene Names
+#   - The script requires the file ensemblToGeneName.txt to run. It basically reads in the Ensemble id from the gene_exp.diff file,
+#   - finds the gene name corresponding to the Ensemble id and appends the gene name to the respective line in the gene_exp.diff file.
+#--------------------------------------------------------------------------------------------------------------
+if [ $1 == "genenames" ] || [ $1 == "all" ]; then
+    if [ ! -d ${GENENAMES_OUTPUT} ]; then  mkdir ${GENENAMES_OUTPUT}; fi
+    bash -v diffGeneNames.sh 2>&1 | tee ${GENENAMES_OUTPUT}/diffGeneNames.sh.out
+fi
+
+#--------------------------------------------------------------------------------------------------------------
+# CummeRbund - creates many plots to visualize cuffdiff results
+#--------------------------------------------------------------------------------------------------------------
+if [ $1 == "cummerbund" ] || [ $1 == "all" ]; then
+    if [ ! -d ${CUMMERBUND_OUTPUT} ]; then  mkdir ${CUMMERBUND_OUTPUT}; fi
+    bash -v launchR.eachDiffDir.sh cummeRbund 2>&1 | tee ${CUMMERBUND_OUTPUT}/launchR.eachDiffDir.sh.cummerbund.out
+fi
+#----------------------------------------------------------------------------------------------------------------
+
+#--------------------------------------------------------------------------------------------------------------
+# Classification - builds classification models for gene expression data
+#--------------------------------------------------------------------------------------------------------------
+
+if [ $1 == "classification" ] || [ $1 == "all" ]; then
+    if [ ! -d ${CLASSIFICATION_OUTPUT} ]; then  mkdir ${CLASSIFCICATION_OUTPUT}; fi
+    bash -v launchR.eachDiffDir.sh classification 2>&1 | tee ${CLASSIFICATION_OUTPUT}/launchR.eachDiffDir.sh.classification.out
+fi
+#----------------------------------------------------------------------------------------------------------------
+
+#--------------------------------------------------------------------------------------------------------------
+# Bionet - finds differentially expressed subnetowrks in a PPI network
+#--------------------------------------------------------------------------------------------------------------
+if [ $1 == "bionet" ] || [ $1 == "all" ]; then
+    if [ ! -d ${BIONET_OUTPUT} ]; then  mkdir ${BIONET_OUTPUT}; fi
+    bash -v launchR.eachDiffFile.sh bionet 2>&1 | tee ${BIONET_OUTPUT}/launchR.eachDiffFile.sh.bionet.out
+fi
+#--------------------------------------------------------------------------------------------------------------
+# GO - uses DGE results to find significantly differentially expressed gene ontology (GO) categories
+#--------------------------------------------------------------------------------------------------------------
+if [ $1 == "go" ] || [ $1 == "all" ]; then
+    if [ ! -d ${GO_OUTPUT} ]; then  mkdir ${GO_OUTPUT}; fi
+    bash -v launchR.eachDiffFile.sh go 2>&1 | tee ${GO_OUTPUT}/launchR.eachDiffFile.sh.go.out
+fi
+#--------------------------------------------------------------------------------------------------------------                                 
+
+#-------------------------------------------------------------------------------------------------------------
+# Pathview - maps DGE results onto defined regulatory pathways
+#--------------------------------------------------------------------------------------------------------------
+if [ $1 == "pathview" ] || [ $1 == "all" ]; then
+    if [ ! -d ${PATHVIEW_OUTPUT} ]; then  mkdir ${PATHVIEW_OUTPUT}; fi
+    bash -v launchR.eachDiffFile.sh pathview 2>&1 | tee ${PATHVIEW_OUTPUT}/launchR.eachDiffFile.sh.pathview.out
+fi
+#--------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------------------
+
+#---GENOME BUILDING TOOLS-----------------------------------------------------------------------------------------------------------
+# The following tools are for building genome indexes and fasta files from annotation files
+# These tools are included for analysis of organisms that lack a prebuild bowtie index which is requirement for the tophat step
+#------------------------------------------------------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------------------------------------------------------------
+# Bowtie2-inspect ------------------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+# is a fast read mapper that will produce reference fasta for a bowtie index as inspect (not for paired end reads).
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+ 
+if [ $1 == "bowtie2-inspect" ] || [ $1 == "all" ]; then
+    if [ ! -d ${BOWTIE_OUTPUT} ]; then  mkdir ${BOWTIE_OUTPUT}; fi
+    bash -v bowtie2-inspect.sh 2>&1 | tee ${BOWTIE_OUTPUT}/bowtie2-inspect.sh.out
+fi
+#--------------------------------------------------------------------------------------------------------------                    
+
+#------------------------------------------------------------------------------------------------------------------------------------------------
+#--- Bowtie2-build ------------------------------------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------------------------------------------------------------
+# bowtie2-build will build a BOWTIE2INDEX from fasta sequences supplied on the command line
+#------------------------------------------------------------------------------------------------------------------------------------------------
+
+if [ $1 == "bowtie2-build" ] || [ $1 == "all" ]; then
+    if [ ! -d ${BOWTIE_OUTPUT} ]; then  mkdir ${BOWTIE_OUTPUT}; fi
+    bash -v bowtie2-build.sh 2>&1 | tee ${BOWTIE_OUTPUT}/bowtie2-build.sh.out
+fi
+#--------------------------------------------------------------------------------------------------------------                    
+
+#--------------------------------------------------------------------------------------------------------------
+#----SECONDARY ANALYSIS TOOLS---------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------------------
+#------SAMTOOLS BAMTOOLS---------------------------------------------------------------------------------
+#  Samtools is a wrapper for many functions that take BAM and SAM files as input.  FLAGSTAT provides mapping
+#  statistics on the file.  MPILEUP is the first step in variant analysis where the sequences in the bam files
+#  are compared to that of the reference sequences.  DEPTH produces the sequence depth of the files.
+
+#------BEDTOOLS AND VCFTOOLS---------------------------------------------------------------------------------
+#  BEDTOOLS AND VCFTOOLS serve similar purposes with slightly different functionality.  All these tools are used
+# for BAM/SAM/VCF/SNP file conversion/assessment/visualization and useful for identifying SNPs and splice variants
+
+#---- Samtools_# (replace # with  any command within the samtools lexicon)
+
+if [ $1 == "samtools" ] || [ $1 == "all" ]; then
+    if [ ! -d ${SAMTOOLS_OUTPUT} ]; then  mkdir ${SAMTOOLS_OUTPUT}; fi
+    bash -v Secondary_Tools/samtools.sh 2>&1 | tee ${SAMTOOLS_OUTPUT}/samtools.sh.out
+fi
+
+#---- Samtools Stats # any command within the samtools lexicon -----------------------------------------------
+
+if [ $1 == "stats" ] || [ $1 == "all" ]; then
+    if [ ! -d ${SAMTOOLS_OUTPUT} ]; then  mkdir ${SAMTOOLS_OUTPUT}; fi
+    bash -v Secondary_Tools/samtools_stats.sh 2>&1 | tee ${SAMTOOLS_OUTPUT}/samtools.sh.out
+fi
+
+#---- Samtools view # any command within the samtools lexicon -----------------------------------------------
+
+if [ $1 == "view" ] || [ $1 == "all" ]; then
+    if [ ! -d ${SAMTOOLS_OUTPUT} ]; then  mkdir ${SAMTOOLS_OUTPUT}; fi
+    bash -v Secondary_Tools/samtools_view.sh 2>&1 | tee ${SAMTOOLS_OUTPUT}/samtools.sh.out
+fi
+#---- Samtools INDEX -----------------------------------------------------------------------------------                                                                                                          
+
+if [ $1 == "index" ] || [ $1 == "all" ]; then
+    if [ ! -d ${SAMTOOLS_OUTPUT} ]; then  mkdir ${SAMTOOLS_OUTPUT}; fi
+    bash -v Secondary_Tools/samtools_index.sh 2>&1 | tee ${SAMTOOLS_OUTPUT}/samtools_index.sh.out
+fi
+
+#---- Samtools SORT -----------------------------------------------------------------------------------                                                                                                           
+
+if [ $1 == "sort" ] || [ $1 == "all" ]; then
+    if [ ! -d ${SAMTOOLS_OUTPUT} ]; then  mkdir ${SAMTOOLS_OUTPUT}; fi
+    bash -v Secondary_Tools/samtools_sort.sh 2>&1 | tee ${SAMTOOLS_OUTPUT}/samtools_sort.sh.out
+fi
+
+#---- Samtools TVIEW -----------------------------------------------------------------------------------                                                                                                          
+
+if [ $1 == "tview" ] || [ $1 == "all" ]; then
+    if [ ! -d ${SAMTOOLS_OUTPUT} ]; then  mkdir ${SAMTOOLS_OUTPUT}; fi
+    bash -v Secondary_Tools/samtools_tview.sh 2>&1 | tee ${SAMTOOLS_OUTPUT}/samtools_tview.sh.out
+fi
+
+#---- Samtools IDXSTATS -----------------------------------------------------------------------------------                                                                                                       
+
+if [ $1 == "idxstats" ] || [ $1 == "all" ]; then
+    if [ ! -d ${SAMTOOLS_OUTPUT} ]; then  mkdir ${SAMTOOLS_OUTPUT}; fi
+    bash -v Secondary_Tools/samtools_idxstats.sh 2>&1 | tee ${SAMTOOLS_OUTPUT}/samtools_idxstats.sh.out
+fi
+
+#----SAMTOOLS FLAGSTAT--------------------------------------------------------------------------------------
+
+if [ $1 == "flagstat" ] || [ $1 == "all" ]; then
+    if [ ! -d ${SAMTOOLS_OUTPUT} ]; then  mkdir ${SAMTOOLS_OUTPUT}; fi
+    bash -v Secondary_Tools/samtools_flagstat.sh 2>&1 | tee ${SAMTOOLS_OUTPUT}/samtools_flagstat.sh.out
+fi
+
+#----SAMTOOLS DEPTH--------------------------------------------------------------------------------------                                                                                                 
+
+if [ $1 == "depth" ] || [ $1 == "all" ]; then
+    if [ ! -d ${SAMTOOLS_OUTPUT} ]; then  mkdir ${SAMTOOLS_OUTPUT}; fi
+    bash -v Secondary_Tools/samtools_depth.sh 2>&1 | tee ${SAMTOOLS_OUTPUT}/samtools_depth.sh.out
+fi
+
+#----SAMTOOLS MPILEUP--------------------------------------------------------------------------------------                                                                                                 
+
+if [ $1 == "sample_mpileup" ] || [ $1 == "all" ]; then
+    if [ ! -d ${MPILEUP_OUTPUT} ]; then  mkdir ${MPILEUP_OUTPUT}; fi
+    bash -v Secondary_Tools/samtools_mpileup.sh 2>&1 | tee ${MPILEUP_OUTPUT}/samtools_mpileup.sh.out
+fi
+
+#-----BAMTOOLS------------------------------------------------------------------------                                                        
+                                                         
+if [ $1 == "bamtools" ] || [ $1 == "all" ]; then
+    if [ ! -d ${BAMTOOLS_OUTPUT} ]; then  mkdir ${BAMTOOLS_OUTPUT}; fi
+    bash -v Secondary_Tools/bamtools.sh 2>&1 | tee ${BAMTOOLS_OUTPUT}/bamtools.sh.out
+fi
+
+#---BEDTOOLS----------------------------------------------------------------------------------------------
+
+if [ $1 == "bedtools" ] || [ $1 == "all" ]; then
+    if [ ! -d ${BEDTOOLS_OUTPUT} ]; then  mkdir ${BEDTOOLS_OUTPUT}; fi
+    bash -v Secondary_Tools/bedtools.sh 2>&1 | tee ${BEDTOOLS_OUTPUT}/bedtools.sh.out
+fi
+
+#---BCFTOOLS------------------------------------------------------------------------------------------------       
+
+if [ $1 == "bcftools" ] || [ $1 == "all" ]; then
+    if [ ! -d ${BCFTOOLS_OUTPUT} ]; then  mkdir ${BCFTOOLS_OUTPUT}; fi
+    bash -v Secondary_Tools/bcftools.sh 2>&1 | tee ${BCFTOOLS_OUTPUT}/bcftools.sh.out
+fi
+
+#--bed_to_juncs--------------------------------------------------------------------------------------------                    
+
+if [ $1 == "bed_to_juncs" ] || [ $1 == "all" ]; then
+    if [ ! -d ${BEDJUNCS_OUTPUT} ]; then  mkdir ${BEDJUNCS_OUTPUT}; fi
+    bash -v Secondary_Tools/bed_to_juncs.sh 2>&1 | tee ${BEDJUNCS_OUTPUT}/bed_to_juncs.sh.out
+fi
+#--------------------------------------------------------------------------------------------------------------                    
+
+
+#--------------------------------------------------------------------------------------------------------------
+#----BETA TOOLS---------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------------------
+# The tools and scripts in this directory are currently being tested for integration into tailor
+#
+#--------------------------------------------------------------------------------------------------------------                                                                                             
+# GOPLOTS - uses DGE results to produces visualization of significantly differentially expressed gene ontology (GO) categories                                                                                    #--------------------------------------------------------------------------------------------------------------                                                                                             
+if [ $1 == "goplots" ] || [ $1 == "all" ]; then
+    if [ ! -d ${GOPLOTS_OUTPUT} ]; then  mkdir ${GOPLOTS_OUTPUT}; fi
+    bash -v launchR.eachDiffFile.sh goplots 2>&1 | tee ${GOPLOTS_OUTPUT}/launchR.eachDiffFile.sh.goplots.out
+ fi
+
+#--------------------------------------------------------------------------------------------------------------
+#-------- tablemaker --------------------------------------------------------------------------------                            
+### In order to group all of the BAM files together and quantify gene expression values per condition
+# (i.e.diseased vs. healthy) tablemaker must be performed.  The output files can be used as
+# input for the ballgown step.
+#----------------------------------------------------------------------------------------------------
+
+if [ $1 == "tablemaker" ] || [ $1 == "all" ]; then
+    if [ ! -d ${TABLEMAKER_OUTPUT} ]; then  mkdir ${TABLEMAKER_OUTPUT}; fi
+    bash -v tablemaker.sh 2>&1 | tee ${TABLEMAKER_OUTPUT}/tablemaker.sh.out
+fi
+
+#--------------------------------------------------------------------------------------------------------------                                        
+# CREATEMATRIX creates adjacency matrices to anyalyze the biomarkers via SVM with the netclass packages                                         
+#--------------------------------------------------------------------------------------------------------------                                  
+if [ $1 == "creatematrix" ] || [ $1 == "all" ]; then
+    if [ ! -d ${MATRIX_OUTPUT} ]; then  mkdir ${MATRIX_OUTPUT}; fi
+    bash -v launchR.eachDiffDir.sh CreateNewMatrix 2>&1 | tee ${MATRIX_OUTPUT}/launchR.eachDiffDir.sh.creatematrix.out
+fi
+
+#--------------------------------------------------------------------------------------------------------------                                  
+#  leaveout cuffdiff -leave-one-out cross validation of the identified significant differential gene feature expression.                
+#   - Run Cuffdiff  n times , n=total # of samples
+#--------------------------------------------------------------------------------------------------------------                                  
+#if [ $1 == "leaveout" ] || [ $1 == "all" ]; then
+#    if [ ! -d ${LEAVEOUT_OUTPUT} ]; then  mkdir ${LEAVEOUT_OUTPUT}; fi
+#    bash -v betaCuffdiff_leaveout.sh 2>&1 | tee ${LEAVEOUT_OUTPUT}/multipleCuffdiff.sh.out
+#fi

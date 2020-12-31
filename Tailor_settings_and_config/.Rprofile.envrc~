@@ -1,0 +1,49 @@
+module unload R
+module unload java
+module unload bwa
+module unload fastqc
+module unload perl
+module unload picard
+module unload zlib
+module unload samtools
+
+
+module load R/3.2.2
+module load java/1.7.0_25
+module load bwa/0.7.5a
+module load fastqc/0.10.1
+module load perl/5.18.1
+module load picard/1.96
+module load samtools/0.0.19
+module load zlib/1.2.8
+
+# User specific environment and startup programs
+# LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$RJAVA_HOME/rJava/jri
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$RJAVA_HOME/rJava/jri:/share/pkg/R/3.2.2/lib64/R/lib
+D_HOME=/project/umb_triley/riley
+R_HOME=/share/pkg/R/3.2.2/lib64/R
+R_LIBS=/share/pkg/R/3.2.2/lib64/R/library
+R_LIBS_USER=/project/umb_triley/local/R:/project/umb_triley/Rpackages
+RJAVA_HOME=/project/umb_triley/local/R
+DISPLAY=:1.0
+PYTHONPATH=/project/umb_triley/pyModules/lib/python2.7/site-packages
+
+PATH=.:/usr/local/java/bin:$D_HOME/MatrixREDUCE/bin:$PATH:$D_HOME/packages/MAT-2.09232006.linux:$D_HOME/bin:$D_HOME/packages/numarray-1.5.2/build/lib.linux-i686-2.3/numarray:$D_HOME/packages/SWIG1.1p5/Runtime:$D_HOME/util/bwa-0.7.5a:$D_HOME/util/fastxToolkit/bin:/project/umb_triley/pyModules/bin
+MATRIXREDUCE=$D_HOME/MatrixREDUCE
+CLASSPATH=.:$D_HOME/biojava-live/ant-build/biojava.jar:$D_HOME/biojava-live/ant-build/bytecode.jar:$D_HOME/biojava-live/ant-build/commons-cli.jar:$D_HOME/biojava-live/ant-build/commons-collections-2.1.jar:$D_HOME/biojava-live/ant-build/commons-dbcp-1.1.jar:$D_HOME/biojava-live/ant-build/commons-pool-1.1.jar:$D_HOME/util/trove/3.0.2/lib/trove-3.0.2.jar:$D_HOME/BindingSites/java:$D_HOME/util/colt/lib/colt.jar:$D_HOME/packages/jfreechart-1.0.13/lib/jfreechart-1.0.13.jar:$D_HOME/packages/jfreechart-1.0.13/lib/jcommon-1.0.16.jar:$D_HOME/util/colt/lib/concurrent.jar:$RJAVA_HOME/rJava/jri/JRI.jar:$RJAVA_HOME/rJava/jri/JRIEngine.jar:$RJAVA_HOME/rJava/jri/REngine.jar:$D_HOME/packages/commons-lang-2.4.jar:$D_HOME/packages/commons-math3-3.2.jar:$D_HOME/util/itext-5.1.0/itextpdf-5.1.0.jar:$D_HOME/util/Multivalent20060102.jar:$D_HOME/util/jmathplot.jar
+
+export R_LIBS 
+export R_LIBS_USER
+export RJAVA_HOME
+export R_HOME
+export LD_LIBRARY_PATH
+export D_HOME
+export PATH
+export MATRIXREDUCE
+export CLASSPATH
+export DISPLAY
+export PYTHONPATH
+
+unset USERNAME
+
+

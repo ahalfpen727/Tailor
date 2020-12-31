@@ -1,0 +1,18 @@
+No index name given!
+Bowtie 2 version 2.1.0 by Ben Langmead (langmea@cs.jhu.edu, www.cs.jhu.edu/~langmea)
+Usage: bowtie2-inspect [options]* <bt2_base>
+  <bt2_base>         bt2 filename minus trailing .1.bt2/.2.bt2
+
+  By default, prints FASTA records of the indexed nucleotide sequences to
+  standard out.  With -n, just prints names.  With -s, just prints a summary of
+  the index parameters and sequences.  With -e, preserves colors if applicable.
+
+Options:
+  -a/--across <int>  Number of characters across in FASTA output (default: 60)
+  -n/--names         Print reference sequence names only
+  -s/--summary       Print summary incl. ref names, lengths, index properties
+  -e/--bt2-ref      Reconstruct reference from .bt2 (slow, preserves colors)
+  -v/--verbose       Verbose output (for debugging)
+  -h/--help          print detailed description of tool and its options
+  --help             print this usage message
+

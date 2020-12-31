@@ -1,0 +1,18 @@
+cuffmerge: 
+cuffmerge takes two or more Cufflinks GTF files and merges them into a
+single unified transcript catalog.  Optionally, you can provide the script
+with a reference GTF, and the script will use it to attach gene names and other
+metadata to the merged catalog.
+
+Usage:
+    cuffmerge [Options] <assembly_GTF_list.txt>
+
+Options:
+    -h/--help                               Prints the help message and exits
+    -o                     <output_dir>     Directory where merged assembly will be written  [ default: ./merged_asm  ]
+    -g/--ref-gtf                            An optional "reference" annotation GTF.
+    -s/--ref-sequence      <seq_dir>/<seq_fasta> Genomic DNA sequences for the reference.
+    --min-isoform-fraction <0-1.0>          Discard isoforms with abundance below this       [ default:           0.05 ]
+    -p/--num-threads       <int>            Use this many threads to merge assemblies.       [ default:             1  ]
+    --keep-tmp                              Keep all intermediate files during merge
+

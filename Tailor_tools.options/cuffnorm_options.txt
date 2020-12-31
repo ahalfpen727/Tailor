@@ -1,0 +1,40 @@
+cuffnorm v2.2.1 (4237)
+-----------------------------
+Usage:   cuffnorm [options] <transcripts.gtf> <sample1_expr.cxb> <sample2_expr.cxb> [... sampleN_expr.cxb]
+   Supply replicate CXB files as comma separated lists for each condition: sample1_rep1.cxb,sample1_rep2.cxb,...sample1_repM.cxb
+General Options:
+  -o/--output-dir              write all output files to this directory              [ default:     ./ ]
+  -L/--labels                  comma-separated list of condition labels
+  --norm-standards-file        Housekeeping/spike genes to normalize libraries       [ default:   NULL ]
+  -p/--num-threads             number of threads used during quantification          [ default:      1 ]
+  --library-type               Library prep used for input reads                     [ default:  below ]
+  --library-norm-method        Method used to normalize library sizes                [ default:  below ]
+  --output-format              Format for output tables                              [ default:  below ]
+
+Advanced Options:
+  --compatible-hits-norm       count hits compatible with reference RNAs only        [ default:   TRUE ]
+  --total-hits-norm            count all hits for normalization                      [ default:  FALSE ]
+  -v/--verbose                 log-friendly verbose processing (no progress bar)     [ default:  FALSE ]
+  -q/--quiet                   log-friendly quiet processing (no progress bar)       [ default:  FALSE ]
+  --seed                       value of random number generator seed                 [ default:      0 ]
+  --no-update-check            do not contact server to check for update availability[ default:  FALSE ]
+
+Supported library types:
+	ff-firststrand
+	ff-secondstrand
+	ff-unstranded
+	fr-firststrand
+	fr-secondstrand
+	fr-unstranded (default)
+	transfrags
+
+Supported library normalization methods:
+	classic-fpkm
+	geometric (default)
+	geometric
+	quartile
+
+Supported output formats:
+	cuffdiff
+	simple-table (default)
+

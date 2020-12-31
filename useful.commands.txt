@@ -1,0 +1,128 @@
+##############################################################
+# look at tophat mappings results
+##############################################################
+grep -i input */align_summary.txt
+grep -i multiple */align_summary.txt
+grep -i concordant */align_summary.txt
+grep -i overall */align_summary.txt
+
+
+##############################################################
+# browse a fastq.gz file
+##############################################################
+zless file.fastq.gz
+
+
+##############################################################
+# look at top 10 reads of a fastq.gz file
+##############################################################
+zcat file.fastq.gz | head -40
+
+
+##############################################################
+# look at top 100 reads of a fastq.gz file
+##############################################################
+zcat file.fastq.gz | head -400
+
+
+##############################################################
+# look at number of paired and unpaired reads for paired-end R1 and R2 fastq files.
+# Does not work on .gz files!
+##############################################################
+cmpfastq file.R1.fastq file.R2.fastq
+
+
+##############################################################
+# And to count the number of sequences stored in the file
+# we can count the number of lines and divide by 4:
+##############################################################
+zcat reads.fq.gz | echo $((`wc -l`/4))
+
+
+##############################################################
+# Count the number of lines in the file
+##############################################################
+zcat reads.fq.gz | wc -l
+
+
+##############################################################
+# Count the number of lines that are different between two fastq.gz
+##############################################################
+zdiff --suppress-common-lines --speed-large-files -y File1.gz File2.gz | wc -l
+
+zdiff -U 0 file1.gz file2.gz | grep ^@ | wc -l
+
+
+##############################################################
+# Also we can count how many times appear an specific subsequence:
+##############################################################
+zgrep -c 'ATGATGATG' reads.fq.gz
+
+zcat reads.fq.gz | awk '/ATGATGATG/ {nlines = nlines + 1} END {print nlines}'
+
+
+##############################################################
+# Or extract examples of sequences that contain the subsequence:
+##############################################################
+zcat reads.fq.gz | head -n 20000 | grep  --no-group-separator -B1 -A2 ATGATGATG
+
+
+##############################################################
+# Or extract  sequences that contain some pattern in the header:
+##############################################################
+zcat reads.fa.gz | grep  --no-group-separator -B1 -A2 'OS=Homo sapiens'
+
+
+##############################################################
+# Sometimes we will be interested in extracting a small part of the big file to use it for
+# testing our processing methods, ex. the first 1000 sequences (4000 lines):
+##############################################################
+zcat reads.fq.gz | head -4000 > test_reads.fq
+zcat reads.fq.gz | head -4000 | gzip > test_reads.fq.gz
+
+
+##############################################################
+# Or extract a range of lines (1000001-1000004):
+##############################################################
+zcat reads.fq.gz | sed -n '1000001,1000004p;1000005q' > lines.fq
+
+
+##############################################################
+# If we want to extract random sequences (1000):
+##############################################################
+zcat reads.fq.gz | awk '{ printf("%s",$0); n++; if(n%4==0) { printf("n");} else { printf("X#&X");} }' | shuf | head -1000 | sed 's/X#&X/n/g' > reads.1000.fq
+
+
+##############################################################
+# A more complex but sometimes useful Perl one-liner to have statistics about the length of the sequences:
+##############################################################
+perl -ne '{ $c++; if(($c-2)%4==0){$lens{length($_)}++} }; END { print "len\tseqs\n"; while(my($key,$value)=each %lens){print "$key\t$value\n"} }' reads.fastq
+
+awk '{ c++; if((c-2)%4==0){ ++a[length()] } } END{ print "len\tseqs"; for (i in a) print i"\t"a[i]}' reads.fastq
+
+
+##############################################################
+# We can be interested in knowing how much disk space is using the compressed file:
+##############################################################
+gzip --list reads.fq.gz
+
+
+##############################################################
+# It seems that GZIP expands instead of compressing, but it is not true, the reason is
+# that the ‘–list’ option doesn’t work correctly with files bigger than 2GB. The solution
+# is to use a slower but more reliable method to know the real size of the compressed file:
+##############################################################
+zcat reads.fq.gz | wc --bytes
+
+
+##############################################################
+# Also can be interesting to split the file in several, smaller ones, with for e.x. 1 million
+# of sequences each (4 millions of lines in a FASTQ file):
+##############################################################
+zcat reads.fq.gz | split -d -l 4000000 - reads.split    > gzip reads.split*    > rename 's/.split(d+)/.$1.fq/' reads.split*
+
+
+##############################################################
+# And later we can join the files again:
+##############################################################
+zcat reads.*.fq.gz | gzip > reads.fq.g

@@ -1,0 +1,514 @@
+#!/bin/bash
+
+#----NOTE----------------------------------------------------------------------------------
+# This settings file is for advanced users that would like to run multiple types of analyses at the same time with one settings file
+#  This file includes all of the tools in the tailor pipeline to allow for de_novo, gtf_guided, and default analyses to be run from one file.
+
+#----PATH PARAMETERS--------------------------------------------------------------------------------------------------------------------------------
+TAILOR=/project/umb_triley/cpct/rna-seq/tailor
+RSYNC=rsync_results
+#RSYNC=/project/umb_cpct/data/jose/hiseq/12.01.2014/141201_D00345_0037_BHBATBADXX/Data/Intensities/BaseCalls
+BCL2FASTQ=bcl2fastq_results
+MERGE_FASTQ_FILES=mergeFastqFiles_results
+LINKS=createLinks_results
+PRE_TRIM_FASTQC=preTrim_fastqc_results
+TRIM=trim_results
+POST_TRIM_FASTQC=postTrim_fastqc_results
+TOPHAT=tophat_results
+SAMTOOLS=samtools_results
+BAMTOOLS=bamtools_results
+BEDJUNCS=bedjuncs_results
+CUFFLINKS=cufflinks_results
+CUFFMERGE=cuffmerge_results
+CUFFCOMPARE=cuffcompare_results
+CUFFCOMPARE_MERGE=cuffcompare_merge_results
+CUFFQUANT=cuffquant_results
+CUFFNORM=cuffnorm_results
+CUFFDIFF=cuffdiff_results
+LEAVEOUT=leaveout_results
+GENENAMES=diffGeneNames_results
+CUMMERBUND=cummeRbund_results
+BIONET=bionet_results
+BOWTIE=bowtie_results
+PATHVIEW=pathview_results
+GO=go_results
+MATRIX=matrix_results
+
+#--------------------------------------------------------------------------------------------------------------------------------------------
+#---- GENOME BUILDS #------------------------------------------------------------------------------------------
+# [reference annotation gtf files, bowtie-indexes, genome fasta files, chromosomal fasta files]
+#--------------------------------------------------------------------------------------------------------------------------------------------
+
+# GRCH38 NCBI
+GRCH38_NCBI_MULTIFASTA=/project/umb_triley/genomes/Homo_sapiens/NCBI/GRCh38/Sequence/WholeGenomeFasta/genome.fa
+GRCH38_NCBI_BOWTIE_INDEX=/project/umb_triley/genomes/Homo_sapiens/NCBI/GRCh38/Sequence/Bowtie2Index/GRCh38_genome
+GRCH38_NCBI_GTF=/project/umb_triley/genomes/Homo_sapiens/NCBI/GRCh38/Annotation/Genes/genes.gtf
+GRCH38_NCBI_FASTADIR=/project/umb_triley/genomes/Homo_sapiens/NCBI/GRCh38/Sequence/Chromosomes
+
+# HG38 UCSC
+HG38_GTF=/project/umb_triley/cpct/rna-seq/ReferenceGenomes/UCSC_hg38/Annotation/Genes/genes.gtf
+HG38_GENCODE_GTF=/project/umb_triley/cpct/rna-seq/ReferenceGenomes/UCSC_hg38/Annotation/Genes.gencode/genes.gtf
+HG38_MULTIFASTA=/project/umb_triley/cpct/rna-seq/ReferenceGenomes/UCSC_hg38/Sequence/WholeGenomeFasta/genome.fa
+HG38_FASTADIR=/project/umb_triley/cpct/rna-seq/ReferenceGenomes/UCSC_hg38/Sequence/Chromosomes
+HG38_BOWTIE_INDEX=/project/umb_triley/cpct/rna-seq/ReferenceGenomes/UCSC_hg38/Sequence/Bowtie2Index/genome
+
+#HG19 [UCSC]
+HG19_MULTIFASTA=/project/umb_triley/genomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa
+HG19_GTF=/project/umb_triley/genomes/Homo_sapiens/UCSC/hg19/Annotation/Genes/genes.gtf 
+HG19_FASTADIR=/project/umb_triley/genomes/Homo_sapiens/UCSC/hg19/Sequence/Chromosomes
+HG19_BOWTIE_INDEX=/project/umb_triley/genomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome
+
+#Ensembl Genome Build GRCH38 v89
+GRCH38v91_GTF=/project/umb_triley/cpct/rna-seq/ReferenceGenomes/GRCh38-Ensembl/Homo_sapiens.GRCh38.Ensembl.v91.chr.gtf
+GRCH38v91_MULTIFASTA=/project/umb_triley/cpct/rna-seq/ReferenceGenomes/GRCh38-Ensembl/Homo_sapiens.GRCh38.Ensembl.v91.dna.primary_assembly.fa
+GRCH38v91_BOWTIE_INDEX=/project/umb_triley/cpct/rna-seq/ReferenceGenomes/GRCh38-Ensembl/grch38_ensembl
+GRCH38v91_BOWTIE_INDEX_DIR=/project/umb_triley/cpct/rna-seq/ReferenceGenomes/GRCh38-Ensembl
+#GRCH38v89_GTF=/project/umb_triley/cpct/rna-seq/urine1/GRCh38v89/Homo_sapiens.GRCh38.89.chr.gtf
+#GRCH38v89_BOWTIE_INDEX=/project/umb_triley/cpct/rna-seq/urine1/bowtie_results_GRCh38v89/GRCh38v89
+#GRCH38v89_MULTIFASTA=/project/umb_triley/cpct/rna-seq/urine1/GRCh38v89/Homo_sapiens.GRCh38.89.dna.primary_assembly.fa
+#GRCH38v89_FAIDX=/project/umb_triley/cpct/rna-seq/urine1/GRCh38v89/Homo_sapiens.GRCh38.89.dna.primary_assembly.fa.fai
+
+
+# Mouse genome                                                                                                                                                                                                    #MM10_FASTADIR=/share/data/umw_biocore/Genomes/UCSC/mm10/Sequence/Chromosomes                                                                                                                                     #MM10_MULTIFASTA=/share/data/umw_biocore/Genomes/UCSC/mm10/Sequence/WholeGenomeFasta/genome.fa                                                                                                                    #MM10_BOWTIE_INDEX=/share/data/umw_biocore/Genomes/UCSC/mm10/Sequence/Bowtie2Index/genome                                                                                                                         #MM10_GTF=/share/data/umw_biocore/Genomes/UCSC/mm10/Annotation/Genes/genes.gtf                                                                                                                                    
+
+#--------------------------------------------------------------------------------------------------------------------------------------------
+#---- DEPRECATED GENOME BUILDS #------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------------------------------------------------
+                          
+# HG38 [GHPCC supplied genome build CONTAINS ERRORS IN GTF FILE!
+# DO NOT USE
+#HG38_GTF=/share/data/umw_biocore/genome_data/human/hg38/hg38.gtf
+#HG38_MULTIFASTA=/share/data/umw_biocore/genome_data/human/hg38/hg38.fa
+#HG38_FASTADIR=/share/data/umw_biocore/genome_data/human/hg38
+#HG38_BOWTIE_INDEX=/share/data/umw_biocore/genome_data/human/hg38/hg38
+
+#HG19 [GHPCC supplied genome build]
+# DO NOT USE
+#HG19_FASTADIR=/share/data/umw_biocore/genome_data/human/hg19
+#HG19_MULTIFASTA=/share/data/umw_biocore/genome_data/human/hg19/hg19.fa
+#HG19_GTF=/share/data/umw_biocore/genome_data/human/hg19/ucsc.gtf
+#HG19_BOWTIE_INDEX=/share/data/umw_biocore/genome_data/human/hg19/hg19
+
+#--------------------------------------------------------------------------------------------------------------------------------------------
+#-Genome Variable---------------------------------------------------------------------------------------------------------------------------
+#-These variables must be set and remain consistent throughout a run of the tailor pipeline 
+#--------------------------------------------------------------------------------------------------------------------------------------------
+
+FASTADIR=$HG38_FASTADIR
+MULTIFASTA=$HG38_MULTIFASTA
+BOWTIE_INDEX=$HG38_BOWTIE_INDEX
+REFERENCE_GTF=$HG38_GTF
+
+#FASTADIR=$HG19_FASTADIR
+#MULTIFASTA=$HG19_MULTIFASTA
+#BOWTIE_INDEX=$HG19_BOWTIE_INDEX
+#REFERENCE_GTF=$HG19_GTF
+
+
+JOBS_OUT_DIR=jobs.out
+JOBS_SCRIPTS_DIR=jobs.scripts
+#--------------------------------------------------------------------------------------------------------------------------------------------
+
+#----LABEL PARAMETER THAT DIFFERENTIATES THIS RUN OF THE PIPELINE FROM OTHER RUNS-------   #------------------------------------------------------------------------------------------
+# The default label is the output label for the initial steps of the tailor pipeline whichare standard for all levels of analysis (default, gtf_guided, de_novo)                     #DEFAULT_LABEL="_default"                              # The genome label is the output label for the tophat step.  The label identifies the genome to which the raw data was mapped                                 
+
+#GENOME_LABEL="grch38"
+#INPUT_LABEL="_default"
+#OUTPUT_LABEL="_hg38_gtf_guided"
+#OUTPUT_LABEL="_hg38_default"
+#OUTPUT_LABEL="_grch38_default"
+#SPECIAL_LABEL="_grch38_default_special"
+#OUTPUT_LABEL="_hg19_default"
+OUTPUT_LABEL="_grch38v91_ensembl_default"
+#---------------------------------------------------------------------------------------------------------------------------------------------------
+
+#----JOB SUBMISSION PARAMETERS---------------------------------------------------------------------
+SCHEDULER=lsf
+EXTRA_SUBMIT_PARAMETERS="-R (hname!='ghpcc-sgi')"
+#----XVFB-RUN PARAMETERS---------------------------------------------------------------------------
+XVFB_RUN="xvfb-run -a -n 1 -s \"-screen 0 1600x1200x24\""
+#--------------------------------------------------------------------------------------------------
+
+#----RSYNC PARAMETERS--------------------------------------------------------------------------------------------------------------------------                                                                                             
+RSYNC_OUTPUT=${RSYNC}${DEFAULT_LABEL}
+#SOURCE_TYPE="*.bcl"                                                                                                                                                                                                                        
+#SOURCE_DIR="/full/path/on/source/hostname"                                                                                                                                                                                                 #SOURCE_HOST="papabear.umb.edu"                                                                                                                                                                                                             
+#SOURCE_USER="todd"                                                                                                                                                                                                                         #SOURCE_PASS_FILE="~/${SOURCE_HOST}.pass"  # create this file that contains only the password and then "chmod 600" it SO THAT NO ONE ELSE CAN VIEW IT!                                                                                      # WE NEVER PASS THE PASSWORD ON THE COMMAND LINE OR AS AN ENVIRONMENT VARIABLE! THEREFORE, PEOPLE CANNOT SEE IT!!                                                                                                                           
+# EXTRA_RSYNC_PARAMETERS="-auvz"                                                                                                                                                                                                            #----------------------------------------------------------------------------------------------------------------------------------------------
+ 
+#----GENOME RSYNC PARAMETERS--------------------------------------------------------------------------------------------------------------------------                                                                                      
+EXTRA_RSYNC_PARAMETERS=""  #"-auvZ"                                                                                                                                                                                                         
+#SOURCE_TYPE="*"                                                                                                                                                                                                                            
+#SOURCE_DIR="/Homo_sapiens/Ensembl/GRCh38/Homo_sapiens_Ensembl_GRCh38.tar.gz"                                                                                                                                                               
+# ftp://ftp.ensembl.org/../pub/current_fasta/homo_sapiens/dna/                                                                                                                                                                              
+#SOURCE_HOST="ussd-ftp.illumina.com"                                                                                                                                                                                                        
+#SOURCE_USER="igenome"   # G3nom3s4u                                                                                                                                                                                                        
+#SOURCE_PASS_FILE="~/${SOURCE_HOST}.pass"  # This is a public key generated by illumina                                                                                                                                                     
+#location: ftp.broadinstitute.org/bundle                                                                                                                                                                                                    
+#username: gsapubftp-anonymous                                                                                                                                                                                                              
+#password:                                                                                                                                                                                                                                  
+# rsync -av rsync://ftp.ensembl.org/ensembl/pub/current_embl/homo_sapiens .                                                                                                                                                                 
+# ftp://gsapubftp-anonymous@ftp.broadinstitute.org/bundle/                                                                                                                                                                                  #----------------------------------------------------------------------------------------------------------------------------------------------               
+#----------------------------------------------------------------------------------------------------------------------------------------------
+#-----BOWTIE PARAMETERS-----------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------------------------------------
+
+#----------------------------------------------------------------------------------------------------------------------------------------------
+# BOWTIE2-BUILD PARAMETERS-----------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------------------------------------
+
+#REF_SEQS=/project/umb_triley/cpct/rna-seq/urine1/bowtie_results_GRCh38v89/GRCh38v89.fa
+#BOWTIE_BASENAME=${GENOME_LABEL}
+BOWTIE_INPUT=${MULTIFASTA}
+BOWTIE_OUTPUT=${GRCH38v91_BOWTIE_INDEX_DIR}
+EXTRA_BOWTIE_BUILD_PARAMETERS="${MULTIFASTA}"
+#---------------------------------------------------------------------------
+
+#----------------------------------------------------------------------------------------------------------------------------------------------
+# BOWTIE2-INSPECT PARAMETERS-----------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------------------------------------
+
+#BOWTIE_OUTPUT=${BOWTIE}${BOWTIE_LABEL}
+#EXTRA_BOWTIE_INSPECT_PARAMETERS="-s ${BOWTIE_INDEX}"
+#REF_SEQS=/project/umb_triley/cpct/rna-seq/urine1/bowtie_results_GRCh38v89/GRCh38v89.fa
+# -n Print reference sequence names # -s summary # -v verbose
+# Preparation for IGV
+# From the command line inside the bowtie-results directory perform the following command
+#  > tail -n +7 genome_inspection.txt | cut -f 2- > genome_size.txt
+#----------------------------------------------------------------------------------------------------------------------------------------------
+
+#---------------------------------------------------------------------------
+#---EXTRACT GENOME FROM GFF3-------------------------------------------------
+#---------------------------------------------------------------------------
+#
+# If the annotation and/or sequence is in GFF3 format and the genome sequence in a separate fasta file is not available. 
+# To make a fasta file from data embedded in a GFF3, open a terminal and type:
+#
+# > cat my_file.gff | awk 'BEGIN { doprint = 0}; \
+#                         doprint == 1 { print $0 }; \
+#                         $0 ~ /#FASTA/ { doprint = 1 }' >my_file.fa
+
+#------------------- --------------------------------------------------------
+# Merge all hg19 reference fasta files into one genomes.fa file         
+# cat xyz_directory/hg19/*.fa > genomes.fa  
+#------------------- --------------------------------------------------------
+
+#----------------------------------------------------------------------------------------------------------------------------------------------
+#----TOPHAT USER GUIDANCE------------------------------------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------------------------------------
+
+# to determine if tophat (or any step) has completed and which samples failed use:
+# > grep -rc "Successfully completed" ./jobs.out/*out
+# to determine mapping rates use:
+# > grep -r concordant ./Sample_*/align_summary.txt >> concordant_mapping                                         
+# > grep -r overall ./Sample_*/align_summary.txt >> overall_mapping                                                        
+# > grep -r multiple ./Sample_*/align_summart.txt >> multiple_mapping 
+#-----TOPHAT's OPTIONS----------------
+# BE AWARE of additional parameters that are hard coded into Tophat and Cuffdiff steps (listed at beginning of the settings file). 
+# The following options can be included in the ${EXTRA_TOPHAT_PARAMETERS} variable
+# "--coverage-search 
+# "--microexon-search --fusion-search# searches for reads incident upon microexons and gene fusions.           
+# "--transcriptome-only"  # Only aligns the reads to the transciptome and report only those mappings as genomic mappings
+# "-M" # Informs tophat to map to the whole genome
+# "--read-realign-edit-dist=0" # best alignment after realignment (time intensive)                                       
+# " -g 10" # Maximum number of multi-hits (multiple allowable mappings) to 10                                            
+# "-G ${REFERENCE_GTF} --transcriptome-index ${ANNOTATION_INDEX}" # builds a transcriptome (exome) from the wholegenome.fa and GTF file       
+#------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
+# BEDTOOLS bed_to_juncs Parameters
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+
+BEDJUNCS_INPUT=${TOPHAT}${OUTPUT_LABEL}
+BEDJUNCS_OUTPUT=${BEDJUNCS}${BOWTIE_LABEL}
+BEDJUNCS_FIND_INPUT_PATTERN='*_out'
+BEDJUNCS_INPUT_REGEX="(.+)_out"   #anything that ends with "_out"
+GENOME_SIZE_FILE='${BOWTIE_OUTPUT}/genome_size.txt'
+#EXTRA_BEDJUNCS_PARAMETERS=
+#----------------------------------------------------------------------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
+# BAMTOOLS
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+
+# /project/umb_triley/cpct/rna-seq/urine1/LUTS_vs_CTRL_gtf_guided/tophat_results_GRCh38_gtf_only
+# TOPHAT_MAP=/project/umb_triley/cpct/rna-seq/urine1/LUTS_vs_CTRL_gtf_guided/tophat_results
+BAMTOOLS_INPUT=${TOPHAT_MAP}${OUTPUT_LABEL}
+BAMTOOLS_OUTPUT=${BAMTOOLS}${OUTPUT_LABEL}_coverage
+BAMTOOLS_COMMAND="coverage"
+EXTRA_BAMTOOLS_PARAMETERS=${BAMTOOLS_COMMAND}
+BAMTOOLS_INPUT_REGEX="(.+)_out"   # anything that ends with "_out"
+BAMTOOLS_FIND_INPUT_PATTERN='*_out'
+#----------------------------------------------------------------------------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+#---SAMTOOLS PARAMETERS-----------------------------------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------------------------------------
+
+SAMTOOLS_INPUT=${TOPHAT}${OUTPUT_LABEL}
+#SAMTOOLS_OUTPUT="${SAMTOOLS}${OUTPUT_LABEL}" # add samtools label _toolused to differentiate and create outdir                        
+SAMTOOLS_OUTPUT="${SAMTOOLS}${OUTPUT_LABEL}"
+# produces mapping statistics similar to unix command search but much lower limit for acceptable intronic length 
+#SAMTOOLS_OUTPUT="${SAMTOOLS}${OUTPUT_LABEL}_depth"                                                                                  
+#SAMTOOLS_OUTPUT="${SAMTOOLS}${OUTPUT_LABEL}_mpileup"  
+# depth and mpileup perform coverage assessment and SNP analysis of the input SAM file
+# REGION_BED=/project/umb_triley/cpct/rna-seq/tailor/indexFiles/chr10_region.bed
+# REGION=chr10:44865600-44880545                            
+# REGION-> #Genomic region chr##:####-####
+SAMTOOLS_FIND_INPUT_PATTERN='*_out'
+SAMTOOLS_INPUT_REGEX="(.+)_out"   # anything that ends with "_out"
+EXTRA_SAMTOOLS_PARAMETERS=""
+#---------------------------------------------------------------------------------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+#- CUFFLINKS GUIDANCE
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+
+# From Cufflinks manual:
+# -G                     quantitate against reference transcript annotations (ONLY)
+# -g/--GTF-guide         use reference transcript annotation to guide assembly     
+
+# GTF_GUIDED DE NOVO
+# -g/--GTF-guide <reference_annotation.(gtf gff)[GTF_GUIDED]="">     Tells Cufflinks to use the supplied reference annotation (GFF) to guide RABT assembly. Reference transcripts will be tiled with faux-reads to provide additional information in assembly. Output will include all reference transcripts as well as any novel genes and isoforms that are assembled.
+
+# REFERENCE ANNOTATION ONLY
+# -G <reference_annotation.(gtf gff){GTF_ONLY]="">     Tells Cufflinks to use the supplied reference annotation (a GFF file) to estimate isoform expression. It will not assemble novel transcripts, and the program will ignore alignments not structurally compatible with any reference transcript.
+
+# In GTF_GUIDED and GTF_ONLY analyses (major difference is cufflinks option  or -g)                                                  
+#  The tailor workflow is -  cufflinks --> cuffcomparemerge -->cuffquant -->  cuffdiff                                                      
+# If you run cuffcompare with the -r option, the 1st and 2nd columns contain the closest matching reference transcript.
+# This may be useful for identifying  novel spliceoforms discovered during the analysis.                                           
+# After cufflinks, the gtf_guided workflow continues --> cuffcomparemerge --> cuffquant --> cuffdiff. 
+# Cuffcomparemerge output (cuffcmp.combined.gtf) can be used as input for the cuffquant step.
+# The output from cuffquant (.cxb files) and the cuffcmp.combined.gtf are both used as input for the cuffdiff step.
+#-------------------------------------------------------------------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------------------------------------------------------------------
+#----TABLEMAKER_PARAMETERS---------------------------------------------------------------------------------------------------------------------------                                                                                       
+#---------------------------------------------------------------------------------------------------------------------------------------------------                                                                                        
+
+TABLEMAKER_INPUT="${TOPHAT}${INPUT_LABEL}"
+TABLEMAKER_OUTPUT="${TABLEMAKER}${OUTPUT_LABEL}"
+TABLEMAKER_INPUT_REGEX="(.+)_out"   # anything that ends with "_out"                                                                                                                                                                        
+TABLEMAKER_FIND_INPUT_PATTERN='*_out'
+TABLEMAKER_FIND_INPUT_FILE='input.list.txt'
+TABLEMAKER_ALIGNMENT_FILE="accepted_hits.bam"
+# EXTRA_TABLEMAKER_PARAMETERS="-v ${REFERENCE_GTF} -b ${MULTIFASTA}"                                                                                                                                                                        
+EXTRA_TABLEMAKER_PARAMETERS="-W -G ${CUFFCOMPARE}${OUTPUT_LABEL}/cuffcmp.combined.gtf" # -b ${FASTADIR}"                                                                                                                               
+#----------------------------------------------------------------------------------------- 
+
+
+#----------------------------------------------------------------------------------------- 
+#----CUFFNORM_PARAMETERS--------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------------------------------------------------
+
+CUFFNORM_INPUT="${CUFFQUANT}${OUTPUT_LABEL}"
+CUFFNORM_OUTPUT="${CUFFNORM}${OUTPUT_LABEL}"
+CUFFNORM_FOLDCHANGE_OUTPUT='${experiment2Name}-over-${experiment1Name}'
+
+# Group 0: CTRL
+experimentNames[0]="CTRL";
+declare -a experimentGroups0=( \
+    Sample_3 \
+    Sample_5 \
+    Sample_7 \
+    Sample_9 \
+    Sample_11 \
+    Sample_13 \
+    Sample_15 \
+    Sample_17 \
+    Sample_19 \
+    );
+
+# Group 1: LUTS
+experimentNames[1]="LUTS";
+declare -a experimentGroups1=( \
+    Sample_4 \
+    Sample_6 \
+    Sample_8 \
+    Sample_10 \
+    Sample_12 \
+    Sample_14 \
+    Sample_16 \
+    Sample_18 \
+    Sample_20 \
+    );
+
+NUM_COMPARISONS='1'
+# Comparison 1: GROUP1 over CTRL
+ declare -a cuffnorm0=(0 1)  # cuffnorm(group0 group1) calculates group1-over-group0 expression fold-change
+
+# Comparison 2: GROUP2 over GROUP0
+# declare -a cuffnorm1=(0 2)  # cuffnorm(group0 group2) calculates group2-over-group0 expression fold-change
+
+# Comparison 3: GROUP3 over GROUP0
+# declare -a cuffnorm2=(0 3)  # cuffnorm(group0 group3) calculates group3-over-group0 expression fold-change
+
+CUFFNORM_ALIGNMENT_FILE="abundances.cxb"
+# CUFFNORM_ALIGNMENT_FILE="accepted_hits.bam"
+#EXTRA_CUFFNORM_PARAMETERS='${CUFFMERGE}${OUTPUT_LABEL}/merged.gtf -output-format cuffdiff -L ${experiment1Name},${experiment2Name}'
+EXTRA_CUFFNORM_PARAMETERS='${REFERENCE_GTF} -output-format cuffdiff -L ${experiment1Name},${experiment2Name}'
+#----------------------------------------------------------------------------------------------------------------------------------------
+
+#----------------------------------------------------------------------------------------------------------------------------------------
+#----LAUNCHR_PARAMETERS-------------------------------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------------------------------
+
+# laucnhes the cummerbund, bionet, go, and pathview R scripts via the launchr shell scripts
+# To run the R analyses on CUFFNORM data some variables need to be changed BE AWARE!
+# If you are running cummeRbund you need to enter the expected memory usage with the variable below
+#  The GTF_GUIDED and DEFAULT analyses should complete with 32 GB, the DE_NOVO analysis may need upward of 70 GB
+
+#LAUNCHR_INPUT="${CUFFNORM}${OUTPUT_LABEL}"
+#LAUNCHR_OUTPUT='${1}_results_cuffnorm${OUTPUT_LABEL}'
+LAUNCHR_INPUT="${CUFFDIFF}${OUTPUT_LABEL}"
+LAUNCHR_OUTPUT='${1}_results${OUTPUT_LABEL}'
+
+# These LaunchR variables are for the CummeRbund step
+LAUNCHR_EACHDIFFDIR_FIND_INPUT_DIR='${INPUT}'
+LAUNCHR_EACHDIFFDIR_FIND_INPUT_PATTERN='*-over-*'
+
+# These LaunchR variables are for the Pathview, GO, and Bionet steps
+LAUNCHR_EACHDIFFFILE_FIND_INPUT_DIR='${INPUT}/*-over-*'
+
+# The variable below has been modified to take cuffnorm output as input.
+#LAUNCHR_EACHDIFFFILE_FIND_INPUT_PATTERN='*fpkm_tracking'  
+
+# The INPUT PATTERN below is modified to take cuffdiff output as input 
+LAUNCHR_EACHDIFFFILE_FIND_INPUT_PATTERN='*.diff'
+LAUNCHR_INPUT_REGEX="(.+)-over-(.+)"
+#----------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#----------------------------------------------------------------------------------------------------------------------------------------------
+#----CUMMERBUND PARAMETERS--------------------------------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------------------------------------
+
+CUMMERBUND_OUTPUT=${CUMMERBUND}${OUTPUT_LABEL}
+GENES_OF_INTEREST='CXCL12,CXCR4,TGFB,MAPK,IL8,CCL5'
+CUMMERBUND_INPUT_GTF="${REFERENCE_GTF}"                                            
+#CUMMERBUND_INPUT_GTF="${CUFFCOMPARE}${OUTPUT_LABEL}/cuffcmp.combined.gtf"
+R_PLOTS="RPlots.pdf"
+R_GENOME=${MULTIFASTA}
+FPKM_MATRIX="fpkmMatrix.csv"
+
+export R_PLOTS
+export FPKM_MATRIX
+export R_GENOME
+export GENES_OF_INTEREST
+#---------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#----------------------------------------------------------------------------------------------------------------------------------------------
+#----BIONET PARAMETERS------------------------------------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------------------------------------
+
+ BIONET_OUTPUT=${BIONET}${OUTPUT_LABEL}
+ BIONET_GENE_ALPHA_VALUE=0.5
+ BIONET_SUBNET_ALPHA_VALUE=0.1
+ BIONET_NUMBER_NETWORKS=20
+
+ export BIONET_GENE_ALPHA_VALUE
+ export BIONET_SUBNET_ALPHA_VALUE
+ export BIONET_NUMBER_NETWORKS
+
+#----------------------------------------------------------------------------------------------------------------------------------------------
+#----GO PARAMETERS----------------------------------------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------------------------------------
+
+GO_OUTPUT=${GO}${OUTPUT_LABEL}
+GO_DIFF_EXPRESSED_ALPHA_VALUE=0.1   # Alpha value for classifying genes as differentially expressed
+GO_HYPER_GEO_ALPHA_VALUE=0.01   #Alpha value for enrichment of differentially expressed genes is a category
+
+export GO_DIFF_EXPRESSED_ALPHA_VALUE
+export GO_HYPER_GEO_ALPHA_VALUE
+#---------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#----------------------------------------------------------------------------------------------------------------------------------------------
+#----PATHVIEW PARAMETERS----------------------------------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------------------------------------
+
+PATHVIEW_OUTPUT=${PATHVIEW}${OUTPUT_LABEL}
+PATHVIEW_SPECIES="human"   # pathview common.name ("human" or "mouse", etc.)
+PATHVIEW_ALPHA_DOWN=0.2  # Alpha value for genes that are under expressed in the case
+PATHVIEW_ALPHA_UP=0.2   # Alpha value for genes that are over expressed in the case
+PATHVIEW_NUMBER_PATHWAYS_DOWN=30
+PATHVIEW_NUMBER_PATHWAYS_UP=30
+PATHVIEW_PATHWAYS_LIST=""
+
+export PATHVIEW_SPECIES
+export PATHVIEW_ALPHA_DOWN
+export PATHVIEW_ALPHA_UP
+export PATHVIEW_NUMBER_PATHWAYS_DOWN
+export PATHVIEW_NUMBER_PATHWAYS_UP
+export PATHVIEW_PATHWAYS_LIST
+#----------------------------------------------------------------------------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------------------------------------------------------------------------                                                                                             
+#----CLASSIFICATION PARAMETERS-------------------------------------------------                                                                                                                                                              
+#-----------------------------------------------------------------                                                                                                                                                                           
+# classification input directory which is equal to output of the Cummerbund                                                                                                                                                                 
+CLASSIFICATION_OUTPUT=${CLASSIFICATION}${OUTPUT_LABEL}
+# METHOD=(lasso elasticNet ridge)                                                                                                                                                                                                           
+METHOD=elasticNet
+FOLD=10
+# -1 = leave-one-out                                                                                                                                                                                                                        
+NESTED="NO"
+# YES/NO                                                                                                                                                                                                                                    
+ITERATIONS=100
+BOOTSTRAP_ITERATIONS=0
+# 0 = no boostrap                                                                                                                                                                                                                           
+TRANSFORM="NA"
+# (log, log2. log10, exp)                                                                                                                                                                                                                   
+MAXBIOMARKERS=500
+SCALE="none"
+#row, col                                                                                                                                                                                                                                   
+DELTA=0.04
+# step for elastic net interval                                                                                                                                                                                                             
+TOPROCCURVE=10
+# top Roc Curve for calculation                                                                                                                                                                                                             
+
+export METHOD
+export FOLD
+export NESTED
+export ITERATIONS
+export BOOTSTRAP_ITERATIONS
+export TRANSFORM
+export MAXBIOMARKERS
+export SCALE
+export DELTA
+export TOPROCCURVE
+
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+ALL_RESULTS_DIRS=( \
+    ${RSYNC_OUTPUT} \
+    ${BCL2FASTQ_OUTPUT} \
+    ${MERGE_FASTQ_FILES_OUTPUT} \
+    ${LINKS_OUTPUT} \
+    ${FASTQC_OUTPUT} \
+    ${TRIM_OUTPUT} \
+    ${TOPHAT_OUTPUT} \
+    ${BEDJUNCS_OUTPUT} \
+    ${CUFFLINKS_OUTPUT} \
+    ${CUFFMERGE_OUTPUT} \
+    ${CUFFCOMPARE_OUTPUT} \
+    ${CUFFCOMPARGE_MERGE_OUTPUT} \
+    ${CUFFQUANT_OUTPUT} \
+    ${CUFFNORM_OUTPUT} \
+    ${SAMTOOLS_OUTPUT} \
+    ${BAMTOOLS_OUTPUT} \
+    ${CUFFDIFF_OUTPUT} \
+    ${LEAVEOUT_OUTPUT} \
+    ${GENENAMES_OUTPUT} \
+    ${CUMMERBUND_OUTPUT} \
+    ${BIONET_OUTPUT} \
+    ${BOWTIE2INSPECT_OUTPUT} \
+    ${BOWTIE2BUILD_OUTPUT} \
+    ${PATHVIEW_OUTPUT} \
+    ${GO_OUTPUT} \
+    ${MATRIX_OUTPUT} \
+    );

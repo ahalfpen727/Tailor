@@ -1,0 +1,6 @@
+channels:
+  - bioconda
+  - r
+  - defaults
+  - conda-forge
+channel_priority: disabled
