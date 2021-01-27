@@ -1,5 +1,5 @@
 # The Tailor RNA-Seq Differential Expression Analysis Pipeline Quickstart
-Tailor is a suite of tools for RNA-Seq differential expression analysis and de-novo disease biomarker discovery. Tailor was designed to facilitate the use of Linux based LSF or SGE shecduled High Performance Computing Cluster (HPCC). Tailor extends and simplifies the **Tuxedo Workflow** which  includes **Tophat**, **Cufflinks/Cuffmerge/Cuffcompare/Cuffquant/Cuffdiff**, and **CummbeRbund**.
+Tailor is a suite of tools for RNA-Seq differential expression analysis and de-novo disease biomarker discovery. Tailor was designed to facilitate the use of Linux based LSF or SGE shecduled High Performance Computing Cluster (HPCC). Tailor extends and simplifies the **Tuxedo** workflow which  includes **Tophat**, **Cufflinks/Cuffmerge/Cuffcompare/Cuffquant/Cuffdiff**, and **CummbeRbund**.
 
 ![TW](./misc/tophat-cufflinks-workflow-snake-w-inputs.jpg)
 
