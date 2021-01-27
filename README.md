@@ -3,7 +3,7 @@ Tailor is a suite of tools for RNA-Seq differential expression analysis and de-n
 
 ![TW](./misc/tophat-cufflinks-workflow-snake-w-inputs.jpg)
 
-The main function of the pipeline is to perform statistical comparsions of the pooled RNA-Seq libraries from samples sharing a phenotype or condition in order to identify potential biomarkers from differentially expressed genes. Tailor's workflow can be run as a comparison between one or more conditions or as a time series workflow. Tailor provides an end to end analysis solution for RNA-Seq data produced by Illumina sequencers (binary bcl data produced by HiSeqs and MiSeqs). The pipeline can be run from later steps with intermediate data formats like multi-fasta, gzipped fastq, and bam files. The Tailor workflow in its entirety is pictured here:
+The main function of the pipeline is to perform statistical comparsions of the pooled RNA-Seq libraries from samples sharing a phenotype or condition in order to identify potential biomarkers from differentially expressed genes. Tailor's workflow can be run as a comparison between one or more conditions or as a time series workflow. Tailor provides an end to end analysis solution for RNA-Seq data produced by Illumina sequencers. The pipeline can be run from later steps with intermediate data formats like multi-fasta, gzipped fastq, and bam files. The Tailor workflow in its entirety is pictured here:
 
 ![Tailor](./misc/tailor-workflow.jpg)
 
