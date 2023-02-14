@@ -212,7 +212,7 @@ RNA-Seq data can be analyzed to provide insight into a population's unique genom
 The Tailor RNA-Seq pipeline is an end-to-end comparative analysis workflow for *de novo* disease biomarker discovery designed to facilitate translational genomics research. The Tailor pipeline produces a set of disease biomarker genes via comparative analysis of the pooled RNA sequence libraries from groups of samples sharing a condition or disease against a group of archetypally healthy samples serving as a control group. Tailor performs genewise (as well as CDS-wise, TSS-wise, isoform-wise, and spliceoform-wise) hypothesis tests of the distrubition of gene expression between the samples of two or more conditions. Significant differences in the gene expression profiles between the conditions are visualized and catalouged to use as condition specific biomarkers. Tailor simplifies and extends the Tuxedo tool-suite (Tophat, Cufflinks, Cuffmerge, Cuffcompare, Cuffquant, Cuffdiff, CummeRbund) of command line tools in order to mitigate the skills-gap bottleneck that currently exists in the field of personalized medicine.
 
 
-## Tailor's workflow can characterized as five general analysis steps:
+## Tailor's workflow is characterized by five general steps:
 Tailor accomodates several variations of the **Tuxedo** suite pipeline but they all follow this general framework.
 
 #### 1. RNA-Seq Library Preparation
