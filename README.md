@@ -1,4 +1,7 @@
-# The Tailor RNA-Seq Differential Expression Analysis Pipeline Quickstart
+-----------------------------------------------------------------------
+# The Tailor RNA-Seq Differential Expression Analysis Pipeline Wiki
+-----------------------------------------------------------------------
+
 Tailor is a suite of tools for RNA-Seq differential expression analysis and de-novo disease biomarker discovery. Tailor was designed to facilitate the use of Linux based LSF or SGE shecduled High Performance Computing Cluster (HPCC). Tailor extends and simplifies the **Tuxedo** workflow which  includes **Tophat**, **Cufflinks/Cuffmerge/Cuffcompare/Cuffquant/Cuffdiff**, and **CummbeRbund**.
 
 ![TW](./misc/tophat-cufflinks-workflow-snake-w-inputs.jpg)
@@ -7,12 +10,78 @@ The main function of the pipeline is to perform statistical comparsions of the p
 
 ![Tailor](./misc/tailor-workflow.jpg)
 
-
 Tailor includes secondary analysis tools to enable more thorough examination of the differentially expressed genes and quantify their utility as potential biomarkers of the condition being studied. The workflow includes additional secondary analysis tools that extend the pipeline as well as prepatory analysis tools that build and retreive the genomic reference materials. Tailor enables users to perform a simplified differential expression analysis as well as a *de novo* analysis that includes several additional steps necessary to perform gene and isoform discovery. More information about each step in the pipeline is provided in the following image:
 
 ![Different Workflows](./misc/tophat-cufflinks-workflow.jpg)
 
+## Introduction to RNA-seq
+![RNA-seq or whole transcriptome sequencing](http://en.wikipedia.org/wiki/RNA-Seq) is a high-throughput technology that enables researchers to determine the relative abundance of RNA transcripts isolated and extracted from cellular samples of interest. The immature pre-mRNA molecules are produced according to the genome of the organism which serves as a template. RNA sequence libraries are essentially character string representations of the nucleotides that encode the amino acids required by the cell in order to build biologically necessary proteins (G, C, U, T, or A; often called "bases").Mature RNA consists only of the "expressed" parts of a gene (exons) with the other information (introns) spliced out before translation (to produce proteins). Sequencers use laser excitation of the nucleotide specific coloring of radioactive fluorophores incorporated into the cDNA during the sequencing by synthesis process (illumina's method). This enables us to determine the character sequences of the mature RNA molecules in the cells of interest as well as a quality score for our confidence in the accuracy of the identification of the nucleotide at each sequence position. RNA transcripts are often hundreds or thousands of nucleotides long but current sequencers are only capable of reading about ~100 nucleotides from either end of a RNA transcript. The industry standard format catalouge of RNA transcripts is a text file format called ![FASTQ](http://en.wikipedia.org/wiki/FASTQ_format). FASTQ files are considered the "raw" RNA-seq data in its most basic usable form. Data produced by Illumina sequencers is output in a proprietary binary format called bcl which requires specicial conversion software made by Illumina in order to reformat the data into the usable FASTQ format.  Bcl2fastq, the illumina conversion software is the first step in the Tailor pipeline.
 
+## The Importance of RNA-seq Analysis and Personalized Medicine
+RNA-Seq data can be analyzed to provide insight into a population's unique genomic features that are different from those of other populations.  RNA-seq analysis has advanced to the point that the genome sequence and unique single nucleotide polymorphisms (SNPS) for a population can be identified from an RNA-Seq experiment of sufficient depth. RNA-Seq analysis provides insight into complex diseases and is a driving force in the new ethos of personalized medicine. Many RNA-Seq analyses yeild a list of features that may provide utility as biomarkers of disease. As the technology develops and becomes less expensive, it may be be employed more regularly in liquid biopsies, non-invasive medical diagnostics that provides a glimpse of the gene expression profile of blood or urine samples. RNA-Seq data produced during time series experiments can be used to identify features that change over time in a population of interest. RNA-Seq transcriptomic analyses are just one level of information that has become available via sequencing.  Proteomic analyses can be layered on top of transcriptomic analyses to produce a more complete picture of the biological mechanisms involved in disease. Sequencing experiments can be designed to characterize different disease phenotypes and the potential for varied response to treatment in relation to a particular genotype.
+![RNA-Seq review paper](http://genomebiology.com/2010/11/12/220)
+![RNA-Seq protocol paper](http://europepmc.org/articles/PMC3334321/)
+
+
+## Introduction to the Tailor RNA-Seq Analysis Pipeline
+The Tailor RNA-Seq pipeline is an end-to-end comparative analysis workflow for *de novo* disease biomarker discovery designed to facilitate translational genomics research. The Tailor pipeline produces a set of disease biomarker genes via comparative analysis of the pooled RNA sequence libraries from groups of samples sharing a condition or disease against a group of archetypally healthy samples serving as a control group. Tailor performs genewise (as well as CDS-wise, TSS-wise, isoform-wise, and spliceoform-wise) hypothesis tests of the distrubition of gene expression between the samples of two or more conditions. Significant differences in the gene expression profiles between the conditions are visualized and catalouged to use as condition specific biomarkers. Tailor simplifies and extends the Tuxedo tool-suite (Tophat, Cufflinks, Cuffmerge, Cuffcompare, Cuffquant, Cuffdiff, CummeRbund) of command line tools in order to mitigate the skills-gap bottleneck that currently exists in the field of personalized medicine.
+
+
+## Tailor's workflow is characterized by five general steps:
+Tailor accomodates several variations of the **Tuxedo** suite pipeline but they all follow this general framework.
+
+#### 1. RNA-Seq Library Preparation
+#### 2. Transcript Mapping, Assembly, and Quantification
+#### 3. Determination of Significant Differential Expression Via Comparative Analysis
+#### 4. Visualization of the Salient Features of the Analysis
+#### 5. Biomarker Prediction Refinement
+
+Tailor's analysis is performed via multi-step, in-parallel, computational jobs submitted to the sheduler of a high performance computing cluster (currently compatible with **platform LSF**, **Sun Grid Engine (SGE)**, and **Slurm** schedulers). Many of the steps in the pipeline are submitted as batch jobs that are recursively performed for every sample included in an analysis. Every job submission is associated with resource requests that have been optimized to allocate sufficient computational resources (prevent job failure) without incuring unecessary job wait-times. The resource request values were optimized for the Massachusetts Green High Performance Computing Cluster (MGHPCC), a large HPCC used by the University of Massachusetts, Boston University, Harvard University, MIT, Northeastern University and the Commonwealth of Massachusetts. Tailor drastically reduces the difficulty of analyzing RNA-Seq data with a computing cluster by automating and parallelizing the steps of the analysis via two word commands (“tailor **bcl2fastq**," “tailor **FastQC**"). 
+
+## Tailor's Minimum Requirements for Operation
+The user must provide RNA-Seq sample libraries for at least two separate conditions (two sample minimimum) or time points for time series data. The minimum number of samples required to produce high confidence biomarkers requires an estimate of the effect size associated with the user's research question and is beyond the scope of this paper. Tailor can analyze single end or paired end fastq format data or the unprocessed binary data format produced by an Illumina sequencer (bcl). This pipeline will also work with reads that have been partially processed as well. If the user has fastq format sequence data or bam format read alignments, Tailor's workflow can be stated from later steps in the pipeline.
+
+   A user must be able to log into and access the scheduler and resources of HPCC from a command line interface (CLI) or with an SSH client like ![PuTTY](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html). The Tailor pipeline source code is available ![here](https://github.com/ahalfpen727/tailor.git) and can easily be installed according to the directions described in the quickstart.
+   
+## Reference Genome Builds
+To perform a differential expression analysis with the Tailor pipeline, the user must provide a Reference Genome Build which is comprised of a whole-genome FASTA file, its accompanying annotation in gene transfer format (GTF or GFF), and an index for the genome. The different types of reference annotation file (gtf, gff2, gff3) are described in greater detail ![here (GFF2)](http://www.sanger.ac.uk/resources/software/gff/spec.html) and ![here (Gff3)](http://www.sequenceontology.org/gff3.shtml). The index is specicific to the alignment software. Tophat requires a bowtei2 index, while hisat2 requires a hisat2 index, and bwa requires a bwa index. Tailor supports Tophat which requires a Bowtie2 index as well as Hisat which requres a Hisat2 specific index.  All three pieces of the Reference Genome Build must be in agreement. The reference annotation file must describe the whole genome fasta file and the index must be built from the whole genome fasta file. The components of the reference genome build are described in much greater detail in the technical documentation hosted by the Broad for ![the Genome Analysis Toolkit](https://gatk.broadinstitute.org/hc/en-us/articles/360041155232-Reference-Genome-Components). Bowtie2 indices can be obtained from the ![Bowtie2 source page](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml). 
+
+Reference genome builds for many model organisms can be obtained from 
+![Illumina's iGenomes](https://support.illumina.com/sequencing/sequencing_software/igenome.html)
+![Tophat's iGenomes](http://ccb.jhu.edu/software/tophat/igenomes.shtml)
+![UCSC](http://hgdownload.soe.ucsc.edu/goldenPath/hg19/bigZips/), 
+![Ensembl](ftp://ftp.ensembl.org/pub/release-101/gtf/)
+![NCBI](ftp://ftp.ncbi.nlm.nih.gov/genomes/H_sapiens/)
+![Gencode](https://www.encodeproject.org/data-standards/reference-sequences/).
+
+All of the necessary componenents of the Reference Genome Build can be found at 
+![Encode's Site](https://www.encodeproject.org/search/?type=Reference&limit=all). 
+![Ensembl](ftp://ftp.ensembl.org/pub/release-101/gtf)
+![Gencode](ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human)
+![UCSC](ftp://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/).
+
+More information regarding the various genome builds and which reference genome build you should select can be found ![here](http://genomespot.blogspot.com/2015/06/mapping-ngs-data-which-genome-version.html), ![here](https://gatk.broadinstitute.org/hc/en-us/articles/360035890951-Human-genome-reference-builds-GRCh38-or-hg38-b37-hg19), and in this excellent blog on the ![subject](https://lh3.github.io/2017/11/13/which-human-reference-genome-to-use). 
+
+### Some annotation file exaple formats are included here.
+#### UCSC's:
+```
+chr6    refGene exon    26924772        26924962        .       +       .       gene_id "LINC00240"; transcript_id "NR_026775"; exon_number "1"; exon_id "NR_026775.1"; gene_name "LINC00240";
+```
+#### ENSEMBL's:
+```
+HG104_HG975_PATCH       retained_intron exon    144766622       144766712       .       +       .        gene_id "ENSG00000261516"; transcript_id "ENST00000561901"; exon_number "1"; gene_name "ZNF707"; gene_biotype "protein_coding"; transcript_name "ZNF707-012"; exon_id "ENSE00002614945";
+```
+#### GENCODE's:
+```
+chr1    HAVANA  gene    11869   14412   .       +       .       gene_id "ENSG00000223972.4"; transcript_id "ENSG00000223972.4"; gene_type "pseudogene"; gene_status "KNOWN"; gene_name "DDX11L1"; transcript_type "pseudogene"; transcript_status "KNOWN"; transcript_name "DDX11L1"; level 2; havana_gene "OTTHUMG00000000961.2";
+```
+Tailor provides a suite of tools for genome indexing and gene-model building. With a user supplied whole genome fasta and its associated annotation file, a user can create a bowtie2 idnex with the following command 
+
+```
+tailor bowtie2-build
+```
+
+# The Tailor RNA-Seq Differential Expression Analysis Pipeline Quickstart
 All of the tools utilized by the Tailor pipeline can be installed via the conda package manager. If not already installed,  install from Anaconda or Miniconda according to your system requirements described at ![anaconda package maintainer](https://www.anaconda.com/distribution/#download-section). Once the conda package manager is installed Tailor can be built from the source files provided in this repository after cloning into your working directory.
 To copy and source the necessary configuration files perform the following commands:
 ```
@@ -194,77 +263,6 @@ CUFFDIFF_INPUT_GTF="${CUFFCOMPARE}${INPUT_LABEL}/cuffcmp.combined.gtf".
 In general, the settings files that end with "_default" do not include novel transcripts and thus just use the reference GTF file; while the settings files that end with "_master" or "_gtf_guided" include novel transcripts. The settings.master configuration file allows the user to employ other differential expression analysis software in liue of cuffdiff. Several enhanced workflows are pictured below:
 
 ![Enhanced Workflows](./misc/tuxedo-enhanced-workflow.png)
-
------------------------------------------------------------------------
-# The Tailor RNA-Seq Differential Expression Analysis Pipeline Wiki
------------------------------------------------------------------------
-
-## Introduction to RNA-seq
-![RNA-seq or whole transcriptome sequencing](http://en.wikipedia.org/wiki/RNA-Seq) is a high-throughput technology that enables researchers to determine the relative abundance of RNA transcripts isolated and extracted from cellular samples of interest. The immature pre-mRNA molecules are produced according to the genome of the organism which serves as a template. RNA sequence libraries are essentially character string representations of the nucleotides that encode the amino acids required by the cell in order to build biologically necessary proteins (G, C, U, T, or A; often called "bases").Mature RNA consists only of the "expressed" parts of a gene (exons) with the other information (introns) spliced out before translation (to produce proteins). Sequencers use laser excitation of the nucleotide specific coloring of radioactive fluorophores incorporated into the cDNA during the sequencing by synthesis process (illumina's method). This enables us to determine the character sequences of the mature RNA molecules in the cells of interest as well as a quality score for our confidence in the accuracy of the identification of the nucleotide at each sequence position. RNA transcripts are often hundreds or thousands of nucleotides long but current sequencers are only capable of reading about ~100 nucleotides from either end of a RNA transcript. The industry standard format catalouge of RNA transcripts is a text file format called ![FASTQ](http://en.wikipedia.org/wiki/FASTQ_format). FASTQ files are considered the "raw" RNA-seq data in its most basic usable form. Data produced by Illumina sequencers is output in a proprietary binary format called bcl which requires specicial conversion software made by Illumina in order to reformat the data into the usable FASTQ format.  Bcl2fastq, the illumina conversion software is the first step in the Tailor pipeline.
-
-## The Importance of RNA-seq Analysis and Personalized Medicine
-RNA-Seq data can be analyzed to provide insight into a population's unique genomic features that are different from those of other populations.  RNA-seq analysis has advanced to the point that the genome sequence and unique single nucleotide polymorphisms (SNPS) for a population can be identified from an RNA-Seq experiment of sufficient depth. RNA-Seq analysis provides insight into complex diseases and is a driving force in the new ethos of personalized medicine. Many RNA-Seq analyses yeild a list of features that may provide utility as biomarkers of disease. As the technology develops and becomes less expensive, it may be be employed more regularly in liquid biopsies, non-invasive medical diagnostics that provides a glimpse of the gene expression profile of blood or urine samples. RNA-Seq data produced during time series experiments can be used to identify features that change over time in a population of interest. RNA-Seq transcriptomic analyses are just one level of information that has become available via sequencing.  Proteomic analyses can be layered on top of transcriptomic analyses to produce a more complete picture of the biological mechanisms involved in disease. Sequencing experiments can be designed to characterize different disease phenotypes and the potential for varied response to treatment in relation to a particular genotype.
-![RNA-Seq review paper](http://genomebiology.com/2010/11/12/220)
-![RNA-Seq protocol paper](http://europepmc.org/articles/PMC3334321/)
-
-
-## Introduction to the Tailor RNA-Seq Analysis Pipeline
-The Tailor RNA-Seq pipeline is an end-to-end comparative analysis workflow for *de novo* disease biomarker discovery designed to facilitate translational genomics research. The Tailor pipeline produces a set of disease biomarker genes via comparative analysis of the pooled RNA sequence libraries from groups of samples sharing a condition or disease against a group of archetypally healthy samples serving as a control group. Tailor performs genewise (as well as CDS-wise, TSS-wise, isoform-wise, and spliceoform-wise) hypothesis tests of the distrubition of gene expression between the samples of two or more conditions. Significant differences in the gene expression profiles between the conditions are visualized and catalouged to use as condition specific biomarkers. Tailor simplifies and extends the Tuxedo tool-suite (Tophat, Cufflinks, Cuffmerge, Cuffcompare, Cuffquant, Cuffdiff, CummeRbund) of command line tools in order to mitigate the skills-gap bottleneck that currently exists in the field of personalized medicine.
-
-
-## Tailor's workflow is characterized by five general steps:
-Tailor accomodates several variations of the **Tuxedo** suite pipeline but they all follow this general framework.
-
-#### 1. RNA-Seq Library Preparation
-#### 2. Transcript Mapping, Assembly, and Quantification
-#### 3. Determination of Significant Differential Expression Via Comparative Analysis
-#### 4. Visualization of the Salient Features of the Analysis
-#### 5. Biomarker Prediction Refinement
-
-Tailor's analysis is performed via multi-step, in-parallel, computational jobs submitted to the sheduler of a high performance computing cluster (currently compatible with **platform LSF**, **Sun Grid Engine (SGE)**, and **Slurm** schedulers). Many of the steps in the pipeline are submitted as batch jobs that are recursively performed for every sample included in an analysis. Every job submission is associated with resource requests that have been optimized to allocate sufficient computational resources (prevent job failure) without incuring unecessary job wait-times. The resource request values were optimized for the Massachusetts Green High Performance Computing Cluster (MGHPCC), a large HPCC used by the University of Massachusetts, Boston University, Harvard University, MIT, Northeastern University and the Commonwealth of Massachusetts. Tailor drastically reduces the difficulty of analyzing RNA-Seq data with a computing cluster by automating and parallelizing the steps of the analysis via two word commands (“tailor **bcl2fastq**," “tailor **FastQC**"). 
-
-## Tailor's Minimum Requirements for Operation
-The user must provide RNA-Seq sample libraries for at least two separate conditions (two sample minimimum) or time points for time series data. The minimum number of samples required to produce high confidence biomarkers requires an estimate of the effect size associated with the user's research question and is beyond the scope of this paper. Tailor can analyze single end or paired end fastq format data or the unprocessed binary data format produced by an Illumina sequencer (bcl). This pipeline will also work with reads that have been partially processed as well. If the user has fastq format sequence data or bam format read alignments, Tailor's workflow can be stated from later steps in the pipeline.
-
-   A user must be able to log into and access the scheduler and resources of HPCC from a command line interface (CLI) or with an SSH client like ![PuTTY](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html). The Tailor pipeline source code is available ![here](https://github.com/ahalfpen727/tailor.git) and can easily be installed according to the directions described in the quickstart.
-   
-## Reference Genome Builds
-To perform a differential expression analysis with the Tailor pipeline, the user must provide a Reference Genome Build which is comprised of a whole-genome FASTA file, its accompanying annotation in gene transfer format (GTF or GFF), and an index for the genome. The different types of reference annotation file (gtf, gff2, gff3) are described in greater detail ![here (GFF2)](http://www.sanger.ac.uk/resources/software/gff/spec.html) and ![here (Gff3)](http://www.sequenceontology.org/gff3.shtml). The index is specicific to the alignment software. Tophat requires a bowtei2 index, while hisat2 requires a hisat2 index, and bwa requires a bwa index. Tailor supports Tophat which requires a Bowtie2 index as well as Hisat which requres a Hisat2 specific index.  All three pieces of the Reference Genome Build must be in agreement. The reference annotation file must describe the whole genome fasta file and the index must be built from the whole genome fasta file. The components of the reference genome build are described in much greater detail in the technical documentation hosted by the Broad for ![the Genome Analysis Toolkit](https://gatk.broadinstitute.org/hc/en-us/articles/360041155232-Reference-Genome-Components). Bowtie2 indices can be obtained from the ![Bowtie2 source page](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml). 
-
-Reference genome builds for many model organisms can be obtained from 
-![Illumina's iGenomes](https://support.illumina.com/sequencing/sequencing_software/igenome.html)
-![Tophat's iGenomes](http://ccb.jhu.edu/software/tophat/igenomes.shtml)
-![UCSC](http://hgdownload.soe.ucsc.edu/goldenPath/hg19/bigZips/), 
-![Ensembl](ftp://ftp.ensembl.org/pub/release-101/gtf/)
-![NCBI](ftp://ftp.ncbi.nlm.nih.gov/genomes/H_sapiens/)
-![Gencode](https://www.encodeproject.org/data-standards/reference-sequences/).
-
-All of the necessary componenents of the Reference Genome Build can be found at 
-![Encode's Site](https://www.encodeproject.org/search/?type=Reference&limit=all). 
-![Ensembl](ftp://ftp.ensembl.org/pub/release-101/gtf)
-![Gencode](ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human)
-![UCSC](ftp://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/).
-
-More information regarding the various genome builds and which reference genome build you should select can be found ![here](http://genomespot.blogspot.com/2015/06/mapping-ngs-data-which-genome-version.html), ![here](https://gatk.broadinstitute.org/hc/en-us/articles/360035890951-Human-genome-reference-builds-GRCh38-or-hg38-b37-hg19), and in this excellent blog on the ![subject](https://lh3.github.io/2017/11/13/which-human-reference-genome-to-use). 
-
-### Some annotation file exaple formats are included here.
-#### UCSC's:
-```
-chr6    refGene exon    26924772        26924962        .       +       .       gene_id "LINC00240"; transcript_id "NR_026775"; exon_number "1"; exon_id "NR_026775.1"; gene_name "LINC00240";
-```
-#### ENSEMBL's:
-```
-HG104_HG975_PATCH       retained_intron exon    144766622       144766712       .       +       .        gene_id "ENSG00000261516"; transcript_id "ENST00000561901"; exon_number "1"; gene_name "ZNF707"; gene_biotype "protein_coding"; transcript_name "ZNF707-012"; exon_id "ENSE00002614945";
-```
-#### GENCODE's:
-```
-chr1    HAVANA  gene    11869   14412   .       +       .       gene_id "ENSG00000223972.4"; transcript_id "ENSG00000223972.4"; gene_type "pseudogene"; gene_status "KNOWN"; gene_name "DDX11L1"; transcript_type "pseudogene"; transcript_status "KNOWN"; transcript_name "DDX11L1"; level 2; havana_gene "OTTHUMG00000000961.2";
-```
-Tailor provides a suite of tools for genome indexing and gene-model building. With a user supplied whole genome fasta and its associated annotation file, a user can create a bowtie2 idnex with the following command 
-
-```
-tailor bowtie2-build
-```
 
 ### Tailor’s Analysis Workflow
    Tailor's analysis is guided by a preconfigured settings file provided with the Tailor source code. The settings file guides the user through the steps being performed and organizes the results of the analysis so that the output from each completed step is automatically used as input for the next step in the pipeline. The user must set the "TAILOR_CONFIG" environment variable to one of the provided settings configuration files. Several pre-configured settings files are provided with the Tailor source code to enable different levels of *de-novo* feature discovery. The settings file enables the user to initiate Tailor's workflow from any step of the pipeline with most standard RNA-Seq file formats (fastq.gz,  sam,  bam, gtf, gff, cxb, and fg.gz) by modifying the name of the input directory for the desired step in the settings file. 
